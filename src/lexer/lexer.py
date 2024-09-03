@@ -24,10 +24,7 @@ def __try_parse_keyword(keyword: str) -> Optional[TokenType]:
 def __try_parse_string(source: Source) -> LexerResult[Token]:
     while source.peek() != '"':
         if source.peek() is None:
-            return Err(
-                LexicalError(source=source)
-                .bind(LexicalErrorKinds.UNTERMINATED_STRING_LITERAL)
-            )
+            return Err(LexicalError(LexicalErrorKinds.UNTERMINATED_STRING_LITERAL, source=source))
 
         source.consume()
 
@@ -49,19 +46,13 @@ def __try_parse_number(source: Source) -> LexerResult[Token]:
         elif not flag_float and ch == '.':
             flag_float = True
         elif flag_float and ch == '.':
-            return Err(
-                LexicalError(source=source)
-                .bind(LexicalErrorKinds.MALFORMED_NUMBER)
-            )
+            return Err(LexicalError(LexicalErrorKinds.MALFORMED_NUMBER, source=source))
         else:
             break
 
     lexeme = source.get_lexeme()
     if len(lexeme) == 0:
-        return Err(
-            LexicalError(source=source)
-            .bind(LexicalErrorKinds.HOW_DID_YOU_GET_HERE)
-        )
+        return Err(LexicalError(LexicalErrorKinds.HOW_DID_YOU_GET_HERE, source=source))
     else:
         return Ok(__new_token(source, TokenType.NUMBER, lexeme))
 
@@ -82,7 +73,7 @@ def scan_token(source: Source) -> LexerResult[Token]:
         return Ok(Token(type=TokenType.EOF, value='', lineno=source.line, span=(source.start, source.current)))
 
     if ch.isspace():
-        return Err(LexicalError(source=source).bind(LexicalErrorKinds.NOP))
+        return Err(LexicalError(LexicalErrorKinds.NOP, source=source))
 
     if ch.isdigit():
         return __try_parse_number(source)
@@ -134,11 +125,8 @@ def scan_token(source: Source) -> LexerResult[Token]:
     lexeme = source.get_lexeme()
     keyword_type = __try_parse_keyword(lexeme)
 
-    if keyword_type is None:
-        return Ok(__new_token(source, TokenType.IDENTIFIER, lexeme))
-
-    else:
-        return Ok(__new_token(source, keyword_type, lexeme))
+    token_type = keyword_type if keyword_type else TokenType.IDENTIFIER
+    return Ok(__new_token(source, token_type, lexeme))
 
 
 def tokenize(input_: str) -> LexerResult[List[Token]]:
