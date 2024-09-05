@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict
+from typing import Tuple
 
 
 class TokenType(Enum):
@@ -52,26 +52,25 @@ class TokenType(Enum):
 
     EOF = 'EOF'
 
-    @staticmethod
-    def keywords() -> Dict[str, str]:
-        return {
-            "AND": TokenType.AND,
-            "CLASS": TokenType.CLASS,
-            "ELSE": TokenType.ELSE,
-            "FALSE": TokenType.FALSE,
-            "FUN": TokenType.FUN,
-            "FOR": TokenType.FOR,
-            "IF": TokenType.IF,
-            "NIL": TokenType.NIL,
-            "OR": TokenType.OR,
-            "PRINT": TokenType.PRINT,
-            "RETURN": TokenType.RETURN,
-            "SUPER": TokenType.SUPER,
-            "THIS": TokenType.THIS,
-            "TRUE": TokenType.TRUE,
-            "VAR": TokenType.VAR,
-            "WHILE": TokenType.WHILE,
-        }
+
+KEYWORDS: dict[str, TokenType] = {
+    "AND": TokenType.AND,
+    "CLASS": TokenType.CLASS,
+    "ELSE": TokenType.ELSE,
+    "FALSE": TokenType.FALSE,
+    "FUN": TokenType.FUN,
+    "FOR": TokenType.FOR,
+    "IF": TokenType.IF,
+    "NIL": TokenType.NIL,
+    "OR": TokenType.OR,
+    "PRINT": TokenType.PRINT,
+    "RETURN": TokenType.RETURN,
+    "SUPER": TokenType.SUPER,
+    "THIS": TokenType.THIS,
+    "TRUE": TokenType.TRUE,
+    "VAR": TokenType.VAR,
+    "WHILE": TokenType.WHILE,
+}
 
 
 @dataclass
@@ -79,4 +78,4 @@ class Token:
     type: TokenType
     value: str
     lineno: int
-    span: (int, int)  # start, end
+    span: Tuple[int, int]  # start, end

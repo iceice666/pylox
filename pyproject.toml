@@ -3,11 +3,12 @@ name = "pylox"
 version = "0.1.0"
 description = ""
 authors = ["iceice666 <iceice666@outlook.com>"]
-readme = "README.md"
+readme = "README.mda"
+package-mode=false
 
 [tool.poetry.dependencies]
 python = "^3.12"
-result = "^0.17.0"
+rusty-utils = "0.1.0"
 
 
 [build-system]

@@ -1,10 +1,9 @@
 from enum import Enum
-from typing import TypeVar
+from typing import TypeVar, Optional
 
-from result import Ok, Err
+from rusty_utils import Result
 
 from src.lexer.source import Source
-
 
 class LexicalErrorKinds(Enum):
     IO_ERROR = "I/O Error"
@@ -22,19 +21,19 @@ class LexicalErrorKinds(Enum):
 class LexicalError(Exception):
     """Base class for lexical errors."""
 
-    source: Source
+    source: Optional[Source]
     char: str
     kind: LexicalErrorKinds
 
-    def __init__(self, kind: LexicalErrorKinds, source: Source = None, char: str = ''):
+    def __init__(self, kind: LexicalErrorKinds, source: Optional[Source] = None, char: str = ''):
         super().__init__()
         self.kind = kind
         self.source = source
         self.char = char
 
-    def __str__(self, source: Source = None, char: str = ''):
-        return f"{self.kind.value}\nAt {self.source.current}"
+    def __str__(self, source: Optional[Source] = None, char: str = ''):
+        return f"{self.kind.value}\nAt {self.source.current if self.source else 'unknown source'}"
 
 
 _T = TypeVar('_T', covariant=True)
-LexerResult = Ok[_T] | Err[LexicalError]
+LexerResult = Result[_T, LexicalError]

@@ -1,4 +1,4 @@
-from typing import AnyStr, Optional
+from rusty_utils import Option
 
 
 class Source:
@@ -7,12 +7,12 @@ class Source:
     current: int = 0
     line: int = 1
 
-    def __init__(self, source: AnyStr):
+    def __init__(self, source: str):
         self.__source = source
 
-    def advance(self) -> Optional[str]:
+    def advance(self) -> Option[str]:
         if not self.has_next():
-            return None
+            return Option()
 
         ch: str = self.__source[self.current]
 
@@ -20,13 +20,13 @@ class Source:
         if ch == '\n':
             self.line += 1
 
-        return ch
+        return Option(ch)
 
-    def peek(self) -> Optional[str]:
+    def peek(self) -> Option[str]:
         if not self.has_next():
-            return None
+            return Option()
         else:
-            return self.__source[self.current]
+            return Option(self.__source[self.current])
 
     def consume(self):
         self.advance()
