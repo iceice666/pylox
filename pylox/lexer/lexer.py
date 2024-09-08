@@ -1,9 +1,9 @@
-from typing import List
+from typing import List, Dict
 
-from rusty_utils import Result, Option
+from rusty_utils import Option, Err, Ok
 
-from src.lexer.error import LexerResult, LexicalErrorKinds, LexicalError
-from src.lexer.source import Source
+from pylox.lexer.error import LexerResult, LexicalErrorKinds, LexicalError
+from pylox.lexer.source import Source
 from .tokens import Token, TokenType, KEYWORDS
 
 
@@ -23,7 +23,7 @@ def __try_parse_keyword(keyword: str) -> Option[TokenType]:
 def __try_parse_string(source: Source) -> LexerResult[Token]:
     while source.peek() != '"':
         if source.peek() is None:
-            return Result(err=LexicalError(LexicalErrorKinds.UNTERMINATED_STRING_LITERAL, source=source))
+            return Err(LexicalError(LexicalErrorKinds.UNTERMINATED_STRING_LITERAL, source=source))
 
         source.consume()
 
@@ -32,7 +32,7 @@ def __try_parse_string(source: Source) -> LexerResult[Token]:
 
     source.consume()  # Closing "
 
-    return Result(ok=token)
+    return Ok(token)
 
 
 def __try_parse_number(source: Source) -> LexerResult[Token]:
@@ -40,46 +40,46 @@ def __try_parse_number(source: Source) -> LexerResult[Token]:
     while source.has_next():
         ch = source.peek()
 
-        if ch.is_some_and(lambda c: c.is_digit()):
+        if ch.is_some_and(lambda c: c.isdigit()):
             source.consume()
         elif not flag_float and ch == '.':
             flag_float = True
         elif flag_float and ch == '.':
-            return Result(err=LexicalError(LexicalErrorKinds.MALFORMED_NUMBER, source=source))
+            return Err(LexicalError(LexicalErrorKinds.MALFORMED_NUMBER, source=source))
         else:
             break
 
     lexeme = source.get_lexeme()
     if len(lexeme) == 0:
-        return Result(err=LexicalError(LexicalErrorKinds.HOW_DID_YOU_GET_HERE, source=source))
+        return Err(LexicalError(LexicalErrorKinds.HOW_DID_YOU_GET_HERE, source=source))
     else:
-        return Result(ok=__new_token(source, TokenType.NUMBER, lexeme))
+        return Ok(__new_token(source, TokenType.NUMBER, lexeme))
 
 
 def __parse_punctuation(
         source: Source,
         default_type: TokenType,
-        rules=None) -> LexerResult[Token]:
+        rules: Dict[str, TokenType] | None = None) -> LexerResult[Token]:
     if rules is None:
         rules = dict()
 
-    ch = source.peek().unwrap()
+    ch = source.get_lexeme()
     tt: TokenType = rules.get(ch, default_type)
     token = __new_token(source, tt, ch)
 
-    return Result(ok=token)
+    return Ok(token)
 
 
 def scan_token(source: Source) -> LexerResult[Token]:
     ch = source.advance()
 
     if ch.is_none():
-        return Result(ok=Token(type=TokenType.EOF, value='', lineno=source.line, span=(source.start, source.current)))
+        return Ok(Token(type=TokenType.EOF, value='', lineno=source.line, span=(source.start, source.current)))
 
     ch = ch.unwrap()
 
     if ch.isspace():
-        return Result(err=LexicalError(LexicalErrorKinds.NOP, source=source))
+        return Err(LexicalError(LexicalErrorKinds.NOP, source=source))
 
     if ch.isdigit():
         return __try_parse_number(source)
@@ -132,23 +132,25 @@ def scan_token(source: Source) -> LexerResult[Token]:
     keyword_type = __try_parse_keyword(lexeme)
 
     token_type = keyword_type.unwrap_or(TokenType.IDENTIFIER)
-    return Result(ok=__new_token(source, token_type, lexeme))
+    return Ok(__new_token(source, token_type, lexeme))
 
 
 def tokenize(input_: str) -> LexerResult[List[Token]]:
-    source = Source(input_)
+    source: Source = Source(input_)
     tokens: List[Token] = []
 
     while source.has_next():
         source.reset()
         new_token = scan_token(source)
 
-        match new_token:
-            case Result(ok=token):
-                tokens.append(token)
-            case Result(err=LexicalError(kind=LexicalErrorKinds.NOP)):
+        if new_token.is_ok():
+            tokens.append(new_token.unwrap())
+        else:
+            err = new_token.unwrap_err()
+            if err.kind == LexicalErrorKinds.NOP:
                 continue
-            case Result(err=e):
-                return Result(err=e)
 
-    return Result(ok=tokens)
+            else:
+                return Err(err)
+
+    return Ok(tokens)

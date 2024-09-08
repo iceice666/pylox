@@ -7,7 +7,7 @@ class Source:
     current: int = 0
     line: int = 1
 
-    def __init__(self, source: str):
+    def __init__(self, source: str) -> None:
         self.__source = source
 
     def advance(self) -> Option[str]:
@@ -28,7 +28,7 @@ class Source:
         else:
             return Option(self.__source[self.current])
 
-    def consume(self):
+    def consume(self) -> None:
         self.advance()
 
     def has_next(self) -> bool:
@@ -37,5 +37,5 @@ class Source:
     def get_lexeme(self) -> str:
         return self.__source[self.start:self.current]
 
-    def reset(self):
+    def reset(self) -> None:
         self.start = self.current

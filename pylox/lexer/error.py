@@ -3,7 +3,7 @@ from typing import TypeVar, Optional
 
 from rusty_utils import Result
 
-from src.lexer.source import Source
+from pylox.lexer.source import Source
 
 class LexicalErrorKinds(Enum):
     IO_ERROR = "I/O Error"
