@@ -1,16 +1,64 @@
 [tool.poetry]
 name = "pylox"
 version = "0.1.0"
-description = ""
+description = "Lox(from craftinginterpreters) interpreter written in Python"
 authors = ["iceice666 <iceice666@outlook.com>"]
-readme = "README.mda"
-package-mode=false
+readme = "README.md"
+package-mode = false
+license = "MIT"
+repository = "https://github.com/iceice666/pylox"
+homepage = "https://github.com/iceice666/pylox"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-rusty-utils = "0.1.0"
+rusty-utils = "0.1.4"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.3.2"
+pytest-mypy = "^0.10.3"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+
+[tool.mypy]
+python_version = "3.12"
+files = [
+    "pylox",
+    "tests",
+]
+
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+no_implicit_optional = true
+no_implicit_reexport = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+strict_equality = true
+strict_optional = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+
+
+[tool.pytest.ini_options]
+addopts = [
+    "-v",
+    "--tb=short",
+]
+testpaths = [
+    "tests",
+]
