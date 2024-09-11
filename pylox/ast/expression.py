@@ -1,6 +1,4 @@
 """
-Grammar for the Lox language.
-
 expression     → equality ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -12,7 +10,9 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
 """
 import abc
+import enum
 from dataclasses import dataclass
+from typing import TypeVar, Generic
 
 from rusty_utils import Catch
 
@@ -25,10 +25,81 @@ class IExpr(abc.ABC):
     pass
 
 
+ResolverT = TypeVar("ResolverT")
+ResolverContextT = TypeVar("ResolverContextT")
+
+
+class UnaryOp(enum.Enum):
+    NOT = "!"
+    NEG = "-"
+
+    def __str__(self) -> str:
+        return self.value
+
+    @staticmethod
+    def from_token(token: Token) -> "UnaryOp":
+        match token.type:
+            case TokenType.BANG:
+                return UnaryOp.NOT
+            case TokenType.MINUS:
+                return UnaryOp.NEG
+            case _:
+                raise ParseError(ParseErrorKinds.UNEXPECTED_TOKEN, tt=token.type)
+
+
+@dataclass
+class Unary(IExpr):
+    operator: Token
+    right: IExpr
+
+
+class BinaryOp(enum.Enum):
+    DIV = "/"
+    MUL = "*"
+    SUB = "-"
+    ADD = "+"
+    MOD = "%"
+    GT = ">"
+    GTE = ">="
+    LT = "<"
+    LTE = "<="
+    NE = "!="
+    EQ = "=="
+
+    def __str__(self) -> str:
+        return self.value
+
+    @staticmethod
+    def from_token(token: Token) -> "BinaryOp":
+        match token.type:
+            case TokenType.SLASH:
+                return BinaryOp.DIV
+            case TokenType.STAR:
+                return BinaryOp.MUL
+            case TokenType.MINUS:
+                return BinaryOp.SUB
+            case TokenType.PLUS:
+                return BinaryOp.ADD
+            case TokenType.GREATER:
+                return BinaryOp.GT
+            case TokenType.GREATER_EQUAL:
+                return BinaryOp.GTE
+            case TokenType.LESS:
+                return BinaryOp.LT
+            case TokenType.LESS_EQUAL:
+                return BinaryOp.LTE
+            case TokenType.BANG_EQUAL:
+                return BinaryOp.NE
+            case TokenType.EQUAL_EQUAL:
+                return BinaryOp.EQ
+            case _:
+                raise ParseError(ParseErrorKinds.UNEXPECTED_TOKEN, tt=token.type)
+
+
 @dataclass
 class Binary(IExpr):
     left: IExpr
-    operator: Token
+    operator: BinaryOp
     right: IExpr
 
 
@@ -42,10 +113,18 @@ class Grouping(IExpr):
     expression: IExpr
 
 
-@dataclass
-class Unary(IExpr):
-    operator: Token
-    right: IExpr
+class IExprResolver(abc.ABC, Generic[ResolverT, ResolverContextT]):
+    @abc.abstractmethod
+    def resolve_literal(self, context: ResolverContextT, value: Literal) -> ResolverT: ...
+
+    @abc.abstractmethod
+    def resolve_grouping(self, context: ResolverContextT, value: Grouping) -> ResolverT: ...
+
+    @abc.abstractmethod
+    def resolve_unary(self, context: ResolverContextT, value: Unary) -> ResolverT: ...
+
+    @abc.abstractmethod
+    def resolve_binary(self, context: ResolverContextT, value: Binary) -> ResolverT: ...
 
 
 @Catch(ParseError)
@@ -88,7 +167,7 @@ def factor(source: Source) -> IExpr:
     expr: IExpr = unary(source).unwrap_or_raise()
 
     while source.match(TokenType.SLASH, TokenType.STAR):
-        operator: Token = source.prev().unwrap_or_raise()
+        operator: BinaryOp = BinaryOp.from_token(source.prev().unwrap_or_raise())
         right: IExpr = unary(source).unwrap_or_raise()
         expr = Binary(expr, operator, right)
 
@@ -100,7 +179,7 @@ def term(source: Source) -> IExpr:
     expr: IExpr = factor(source).unwrap_or_raise()
 
     while source.match(TokenType.MINUS, TokenType.PLUS):
-        operator: Token = source.prev().unwrap_or_raise()
+        operator: BinaryOp = BinaryOp.from_token(source.prev().unwrap_or_raise())
         right: IExpr = factor(source).unwrap_or_raise()
         expr = Binary(expr, operator, right)
 
@@ -112,7 +191,7 @@ def comparison(source: Source) -> IExpr:
     expr: IExpr = term(source).unwrap_or_raise()
 
     while source.match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL):
-        operator: Token = source.prev().unwrap_or_raise()
+        operator: BinaryOp = BinaryOp.from_token(source.prev().unwrap_or_raise())
         right: IExpr = term(source).unwrap_or_raise()
         expr = Binary(expr, operator, right)
 
@@ -124,7 +203,7 @@ def equality(source: Source) -> IExpr:
     expr: IExpr = comparison(source).unwrap_or_raise()
 
     while source.match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL):
-        operator: Token = source.prev().unwrap_or_raise()
+        operator: BinaryOp = BinaryOp.from_token(source.prev().unwrap_or_raise())
         right: IExpr = comparison(source).unwrap_or_raise()
         expr = Binary(expr, operator, right)
 
