@@ -31,7 +31,7 @@ class LexicalError(Exception):
         self.source = source
         self.char = char
 
-    def __str__(self, source: Optional[Source] = None, char: str = ''):
+    def __str__(self) -> str:
         return f"{self.kind.value}\nAt {self.source.current if self.source else 'unknown source'}"
 
 

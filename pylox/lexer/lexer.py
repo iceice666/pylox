@@ -143,14 +143,12 @@ def tokenize(input_: str) -> LexerResult[List[Token]]:
         source.reset()
         new_token = scan_token(source)
 
-        if new_token.is_ok():
-            tokens.append(new_token.unwrap())
-        else:
-            err = new_token.unwrap_err()
-            if err.kind == LexicalErrorKinds.NOP:
+        match new_token:
+            case Ok(tok):
+                tokens.append(tok)
+            case Err(LexicalError(kind=LexicalErrorKinds.NOP)):
                 continue
-
-            else:
+            case Err(err):
                 return Err(err)
 
     return Ok(tokens)

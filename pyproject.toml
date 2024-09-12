@@ -11,7 +11,7 @@ homepage = "https://github.com/iceice666/pylox"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-rusty-utils = "0.1.4"
+rusty-utils = "0.1.5"
 
 
 [tool.poetry.group.test.dependencies]

@@ -142,13 +142,13 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "pytest"
-version = "8.3.2"
+version = "8.3.3"
 description = "pytest: simple powerful testing with Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pytest-8.3.2-py3-none-any.whl", hash = "sha256:4ba08f9ae7dcf84ded419494d229b48d0903ea6407b030eaec46df5e6a73bba5"},
-    {file = "pytest-8.3.2.tar.gz", hash = "sha256:c132345d12ce551242c87269de812483f5bcc87cdbb4722e48487ba194f9fdce"},
+    {file = "pytest-8.3.3-py3-none-any.whl", hash = "sha256:a6853c7375b2663155079443d2e45de913a911a11d669df02a50814944db57b2"},
+    {file = "pytest-8.3.3.tar.gz", hash = "sha256:70b98107bd648308a7952b06e6ca9a50bc660be218d53c257cc1fc94fda10181"},
 ]
 
 [package.dependencies]
@@ -179,13 +179,13 @@ pytest = {version = ">=6.2", markers = "python_version >= \"3.10\""}
 
 [[package]]
 name = "rusty-utils"
-version = "0.1.4"
+version = "0.1.5"
 description = "Bring some useful tools from Rust to Python"
 optional = false
 python-versions = "<4.0,>=3.11"
 files = [
-    {file = "rusty_utils-0.1.4-py3-none-any.whl", hash = "sha256:a7f88779eead1556dc573c320eeadf663bb7680b5f98b72c37f5a9bce0c7f44b"},
-    {file = "rusty_utils-0.1.4.tar.gz", hash = "sha256:f056fc1f33988cbbdf1fca59062d91bf948c30a3d0769abe2d1cb842ee26db59"},
+    {file = "rusty_utils-0.1.5-py3-none-any.whl", hash = "sha256:d6e892c3fce8c7d96121a99d4087235e634f156fab32b94e8a1b31b0edb5c46f"},
+    {file = "rusty_utils-0.1.5.tar.gz", hash = "sha256:1a470f74d0cafc9365e1d0b6b73bde11a247e020bae2950370375459dddd36c4"},
 ]
 
 [[package]]
@@ -202,4 +202,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "0a424cd25accb7a153547a6838d6b920aa2a95056cd565735304bca62c2d9781"
+content-hash = "3c47f29a61506a5a67fa2f08a076d8707fc36aa2b8987240820a013d06ad11cc"
