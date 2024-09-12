@@ -12,9 +12,8 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
 import abc
 import enum
 from dataclasses import dataclass
-from typing import TypeVar, Generic
 
-from rusty_utils import Catch
+from rusty_utils import Result, Ok, Err
 
 from pylox.lexer.tokens import Token, TokenType
 from pylox.parser.error import ParseError, ParseErrorKinds
@@ -23,10 +22,6 @@ from pylox.parser.source import Source
 
 class IExpr(abc.ABC):
     pass
-
-
-ResolverT = TypeVar("ResolverT")
-ResolverContextT = TypeVar("ResolverContextT")
 
 
 class UnaryOp(enum.Enum):
@@ -113,33 +108,18 @@ class Grouping(IExpr):
     expression: IExpr
 
 
-class IExprResolver(abc.ABC, Generic[ResolverT, ResolverContextT]):
-    @abc.abstractmethod
-    def resolve_literal(self, context: ResolverContextT, value: Literal) -> ResolverT: ...
-
-    @abc.abstractmethod
-    def resolve_grouping(self, context: ResolverContextT, value: Grouping) -> ResolverT: ...
-
-    @abc.abstractmethod
-    def resolve_unary(self, context: ResolverContextT, value: Unary) -> ResolverT: ...
-
-    @abc.abstractmethod
-    def resolve_binary(self, context: ResolverContextT, value: Binary) -> ResolverT: ...
-
-
-@Catch(ParseError)
-def primary(source: Source) -> IExpr:
+def primary(source: Source) -> Result[IExpr, ParseError]:
     if source.match(TokenType.NUMBER, TokenType.STRING):
-        return Literal(source.prev().unwrap_or_raise().value)
+        return Ok(Literal(source.prev().unwrap_or_raise().value))
 
     if source.match(TokenType.TRUE):
-        return Literal(True)
+        return Ok(Literal(True))
 
     if source.match(TokenType.FALSE):
-        return Literal(False)
+        return Ok(Literal(False))
 
     if source.match(TokenType.NIL):
-        return Literal(None)
+        return Ok(Literal(None))
 
     if source.match(TokenType.LEFT_PAREN):
         expr: IExpr = expression(source).unwrap_or_raise()
@@ -147,23 +127,23 @@ def primary(source: Source) -> IExpr:
         if not source.match(TokenType.RIGHT_PAREN):
             raise ParseError(ParseErrorKinds.EXPECTED_TOKEN, source, TokenType.RIGHT_PAREN)
 
-        return Grouping(expr)
+        return Ok(Grouping(expr))
 
-    raise ParseError(ParseErrorKinds.UNREACHABLE)
+    return Err(ParseError(ParseErrorKinds.UNREACHABLE))
 
 
-@Catch(ParseError)
-def unary(source: Source) -> IExpr:
+def unary(source: Source) -> Result[IExpr, ParseError]:
     if source.match(TokenType.BANG, TokenType.MINUS):
-        operator: Token = source.prev().unwrap_or_raise()
-        right: IExpr = unary(source).unwrap_or_raise()
-        return Unary(operator, right)
+        match (source.prev(), unary(source)):
+            case (Ok(operator), Ok(right)):
+                return Ok(Unary(operator, right))
+            case (err1, err2):
+                return err1.and_(err2)
 
-    return primary(source).unwrap_or_raise()
+    return primary(source)
 
 
-@Catch(ParseError)
-def factor(source: Source) -> IExpr:
+def factor(source: Source) -> Result[IExpr, ParseError]:
     expr: IExpr = unary(source).unwrap_or_raise()
 
     while source.match(TokenType.SLASH, TokenType.STAR):
@@ -171,11 +151,10 @@ def factor(source: Source) -> IExpr:
         right: IExpr = unary(source).unwrap_or_raise()
         expr = Binary(expr, operator, right)
 
-    return expr
+    return Ok(expr)
 
 
-@Catch(ParseError)
-def term(source: Source) -> IExpr:
+def term(source: Source) -> Result[IExpr, ParseError]:
     expr: IExpr = factor(source).unwrap_or_raise()
 
     while source.match(TokenType.MINUS, TokenType.PLUS):
@@ -183,11 +162,10 @@ def term(source: Source) -> IExpr:
         right: IExpr = factor(source).unwrap_or_raise()
         expr = Binary(expr, operator, right)
 
-    return expr
+    return Ok(expr)
 
 
-@Catch(ParseError)
-def comparison(source: Source) -> IExpr:
+def comparison(source: Source) -> Result[IExpr, ParseError]:
     expr: IExpr = term(source).unwrap_or_raise()
 
     while source.match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL):
@@ -195,11 +173,10 @@ def comparison(source: Source) -> IExpr:
         right: IExpr = term(source).unwrap_or_raise()
         expr = Binary(expr, operator, right)
 
-    return expr
+    return Ok(expr)
 
 
-@Catch(ParseError)
-def equality(source: Source) -> IExpr:
+def equality(source: Source) -> Result[IExpr, ParseError]:
     expr: IExpr = comparison(source).unwrap_or_raise()
 
     while source.match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL):
@@ -207,12 +184,11 @@ def equality(source: Source) -> IExpr:
         right: IExpr = comparison(source).unwrap_or_raise()
         expr = Binary(expr, operator, right)
 
-    return expr
+    return Ok(expr)
 
 
-@Catch(ParseError)
-def expression(source: Source) -> IExpr:
-    return equality(source).unwrap_or_raise()
+def expression(source: Source) -> Result[IExpr, ParseError]:
+    return Ok(equality(source).unwrap_or_raise())
 
 
 def synchronize(source: Source) -> None:
