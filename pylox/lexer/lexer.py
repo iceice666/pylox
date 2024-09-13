@@ -7,7 +7,7 @@ from pylox.lexer.source import Source
 from .tokens import Token, TokenType, KEYWORDS
 
 
-def __new_token(source: Source, tt: TokenType, value: str) -> Token:
+def __new_token(source: Source, tt: TokenType, value: object) -> Token:
     return Token(
         type=tt,
         value=value,
@@ -42,8 +42,9 @@ def __try_parse_number(source: Source) -> LexerResult[Token]:
 
         if ch.is_some_and(lambda c: c.isdigit()):
             source.consume()
-        elif not flag_float and ch == '.':
+        elif not flag_float and ch.is_some_and(lambda c: c == '.'):
             flag_float = True
+            source.consume()
         elif flag_float and ch == '.':
             return Err(LexicalError(LexicalErrorKinds.MALFORMED_NUMBER, source=source))
         else:
@@ -53,7 +54,7 @@ def __try_parse_number(source: Source) -> LexerResult[Token]:
     if len(lexeme) == 0:
         return Err(LexicalError(LexicalErrorKinds.HOW_DID_YOU_GET_HERE, source=source))
     else:
-        return Ok(__new_token(source, TokenType.NUMBER, lexeme))
+        return Ok(__new_token(source, TokenType.NUMBER, float(lexeme) if flag_float else int(lexeme)))
 
 
 def __parse_punctuation(

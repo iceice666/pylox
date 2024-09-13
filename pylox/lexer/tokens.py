@@ -76,6 +76,6 @@ KEYWORDS: dict[str, TokenType] = {
 @dataclass
 class Token:
     type: TokenType
-    value: str
+    value: object
     lineno: int
     span: Tuple[int, int]  # start, end
