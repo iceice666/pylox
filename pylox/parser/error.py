@@ -16,13 +16,18 @@ class ParseErrorKinds(Enum):
 
 
 class ParseError(Exception):
-    def __init__(self, kind: ParseErrorKinds, source: Optional["Source"] = None, tt: Optional["TokenType"] = None):
+    def __init__(self, kind: ParseErrorKinds, source: Optional["Source"] = None, *tt: "TokenType"):
         self.kind = kind
         self.source = source
         self.tt = tt
 
     def __str__(self) -> str:
-        return f"{self.kind.value} @ {self.source} ({self.tt})"
+        string = f"{self.kind.value}"
+        if self.source:
+            string += f" at {self.source.current}th token"
+        if self.tt:
+            string += f": {', '.join(str(t) for t in self.tt)}"
+        return string
 
 
 _T = TypeVar('_T', covariant=True)
