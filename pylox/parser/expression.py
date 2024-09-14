@@ -1,7 +1,7 @@
 from rusty_utils import Catch
 
-from pylox.ast.expression import IExpr, Literal, Grouping, Unary, BinaryOp, Binary
-from pylox.lexer.tokens import TokenType, Token
+from pylox.ast.expression import IExpr, Literal, Grouping, Unary, BinaryOp, Binary, UnaryOp
+from pylox.lexer.tokens import TokenType
 from pylox.parser.error import ParseError, ParseErrorKinds
 from pylox.parser.source import Source
 
@@ -40,7 +40,7 @@ def primary(source: Source) -> IExpr:
 @Catch(ParseError)  # type: ignore
 def unary(source: Source) -> IExpr:
     if source.match(TokenType.BANG, TokenType.MINUS):
-        operator: Token = source.prev().unwrap_or_raise()
+        operator: UnaryOp = UnaryOp.from_token(source.prev().unwrap_or_raise())
         right: IExpr = unary(source).unwrap_or_raise()
         return Unary(operator, right)
 

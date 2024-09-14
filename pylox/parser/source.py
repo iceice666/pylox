@@ -1,6 +1,6 @@
 from typing import List
 
-from rusty_utils import Option, Catch, Result
+from rusty_utils import Option, Catch
 
 from pylox.lexer.tokens import Token, TokenType
 from pylox.parser.error import ParseResult, ParseError, ParseErrorKinds
@@ -22,7 +22,7 @@ class Source:
     def peek(self) -> Option[Token]:
         return Option(self.__tokens[self.current] if self.has_next() else None)
 
-    def prev(self) -> Result[Token, ParseError]:
+    def prev(self) -> ParseResult[Token]:
         return (
             Catch(IndexError)(lambda: self.__tokens[self.current - 1])()
             .map_err(lambda _: ParseError(ParseErrorKinds.EXPECTED_TOKEN))
