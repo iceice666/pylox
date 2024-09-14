@@ -32,7 +32,7 @@ class LexicalError(Exception):
         self.char = char
 
     def __str__(self) -> str:
-        return f"{self.kind.value}\nAt {self.source.current if self.source else 'unknown source'}"
+        return f"{self.kind.value} @ {self.source.current if self.source else 'unknown source'}"
 
 
 _T = TypeVar('_T', covariant=True)

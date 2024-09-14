@@ -21,11 +21,17 @@ def __try_parse_keyword(keyword: str) -> Option[TokenType]:
 
 
 def __try_parse_string(source: Source) -> LexerResult[Token]:
-    while source.peek() != '"':
-        if source.peek() is None:
+    while True:
+        next_ch = source.peek()
+        if next_ch .is_none():
             return Err(LexicalError(LexicalErrorKinds.UNTERMINATED_STRING_LITERAL, source=source))
 
+        if next_ch .is_some_and(lambda c : c == '"'):
+            break
+
         source.consume()
+
+
 
     lexeme = source.get_lexeme().strip('"')
     token = __new_token(source, TokenType.STRING, lexeme)
@@ -42,11 +48,11 @@ def __try_parse_number(source: Source) -> LexerResult[Token]:
 
         if ch.is_some_and(lambda c: c.isdigit()):
             source.consume()
-        elif not flag_float and ch.is_some_and(lambda c: c == '.'):
+        elif ch.is_some_and(lambda c: c == '.'):
+            if flag_float:
+                return Err(LexicalError(LexicalErrorKinds.MALFORMED_NUMBER, source=source))
             flag_float = True
             source.consume()
-        elif flag_float and ch == '.':
-            return Err(LexicalError(LexicalErrorKinds.MALFORMED_NUMBER, source=source))
         else:
             break
 
@@ -64,18 +70,18 @@ def __parse_punctuation(
     if rules is None:
         rules = dict()
 
-    ch = source.get_lexeme()
-    tt: TokenType = rules.get(ch, default_type)
-    token = __new_token(source, tt, ch)
+    base = source.get_lexeme()
+    next_ch = source.peek()
 
-    return Ok(token)
+    if next_ch.is_some_and(lambda c: c in rules):
+        next_ch = source.advance().unwrap()
+        return Ok(__new_token(source, rules[next_ch], base + next_ch))
+    else:
+        return Ok(__new_token(source, default_type, base))
 
 
 def scan_token(source: Source) -> LexerResult[Token]:
     ch = source.advance()
-
-    if ch.is_none():
-        return Ok(Token(type=TokenType.EOF, value='', lineno=source.line, span=(source.start, source.current)))
 
     ch = ch.unwrap()
 
@@ -151,5 +157,6 @@ def tokenize(input_: str) -> LexerResult[List[Token]]:
                 continue
             case Err(err):
                 return Err(err)
+
 
     return Ok(tokens)
