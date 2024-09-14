@@ -40,7 +40,7 @@ class UnaryOp(enum.Enum):
 
 @dataclass
 class Unary(IExpr):
-    operator: Token
+    operator: UnaryOp
     right: IExpr
 
 
@@ -49,11 +49,11 @@ class BinaryOp(enum.Enum):
     MUL = "*"
     SUB = "-"
     ADD = "+"
-    MOD = "%"
+
     GT = ">"
-    GTE = ">="
-    LT = "<"
-    LTE = "<="
+    GE = ">="
+    LS = "<"
+    LE = "<="
     NE = "!="
     EQ = "=="
 
@@ -74,11 +74,11 @@ class BinaryOp(enum.Enum):
             case TokenType.GREATER:
                 return BinaryOp.GT
             case TokenType.GREATER_EQUAL:
-                return BinaryOp.GTE
+                return BinaryOp.GE
             case TokenType.LESS:
-                return BinaryOp.LT
+                return BinaryOp.LS
             case TokenType.LESS_EQUAL:
-                return BinaryOp.LTE
+                return BinaryOp.LE
             case TokenType.BANG_EQUAL:
                 return BinaryOp.NE
             case TokenType.EQUAL_EQUAL:
