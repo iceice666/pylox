@@ -78,3 +78,6 @@ class Token:
     value: object
     lineno: int
     span: Tuple[int, int]  # start, end
+
+    def __str__(self) -> str:
+        return f"[{self.type.name}({self.value}) @ {self.span[0]}-{self.span[1]} ln.{self.lineno}]"

@@ -141,12 +141,13 @@ if __name__ == "__main__":
 
     while True:
         try:
-            text = input("> ")
+            text = input("|> ")
             if text == "exit":
                 break
             tokens = tokenize(text).unwrap_or_raise()
             ast = expression(Source(tokens)).unwrap_or_raise()
-            print(format_ast(ast))
+            print(format_ast(ast).unwrap_or_raise())
             interpret(ast)
-        except Exception as e:
-            print(e)
+        except Exception as err:
+            # traceback.print_exc()
+            print(f"{type(err).__name__}: {err}")

@@ -1,12 +1,7 @@
-from typing import List
-
-from rusty_utils import Result, Ok, Catch
+from rusty_utils import Result, Catch
 
 from pylox.ast.expression import IExpr, Unary, Binary, Grouping, Literal
-from pylox.lexer.tokens import Token
 from pylox.parser.error import ParseError
-from pylox.parser.expression import expression
-from pylox.parser.source import Source
 
 
 class Printer:
@@ -54,11 +49,5 @@ class Printer:
         return str(value.value)
 
 
-def format_ast(input_: List[Token]) -> Result[str, ValueError | ParseError]:
-    source = Source(input_)
-    ast = expression(source)
-    match ast:
-        case Ok(ast):
-            return Printer().resolve(ast, 0)
-        case err:
-            return err
+def format_ast(ast: IExpr) -> Result[str, ValueError | ParseError]:
+    return Printer().resolve(ast, 0)

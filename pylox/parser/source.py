@@ -14,9 +14,9 @@ class Source:
 
     def advance(self) -> Option[Token]:
         if self.has_next():
-            tk = self.peek()
+            tk = self.__tokens[self.current]
             self.current += 1
-            return tk
+            return Option(tk)
         return Option()
 
     def peek(self) -> Option[Token]:

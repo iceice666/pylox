@@ -4,7 +4,7 @@ from rusty_utils import Option, Err, Ok
 
 from pylox.lexer.error import LexerResult, LexicalErrorKinds, LexicalError
 from pylox.lexer.source import Source
-from .tokens import Token, TokenType, KEYWORDS
+from pylox.lexer.tokens import KEYWORDS, TokenType, Token
 
 
 def __new_token(source: Source, tt: TokenType, value: object) -> Token:
@@ -23,15 +23,13 @@ def __try_parse_keyword(keyword: str) -> Option[TokenType]:
 def __try_parse_string(source: Source) -> LexerResult[Token]:
     while True:
         next_ch = source.peek()
-        if next_ch .is_none():
+        if next_ch.is_none():
             return Err(LexicalError(LexicalErrorKinds.UNTERMINATED_STRING_LITERAL, source=source))
 
-        if next_ch .is_some_and(lambda c : c == '"'):
+        if next_ch.is_some_and(lambda c: c == '"'):
             break
 
         source.consume()
-
-
 
     lexeme = source.get_lexeme().strip('"')
     token = __new_token(source, TokenType.STRING, lexeme)
@@ -157,6 +155,5 @@ def tokenize(input_: str) -> LexerResult[List[Token]]:
                 continue
             case Err(err):
                 return Err(err)
-
 
     return Ok(tokens)
