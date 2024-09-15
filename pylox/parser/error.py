@@ -22,8 +22,9 @@ class ParseError(Exception):
         self.tt = tt
 
     def __str__(self) -> str:
-        string = f"Current token is {self.source.peek()}\n{self.kind.value}"
+        string = ""
         if self.source:
+            string += f"Current token is {self.source.peek()}\n{self.kind.value}"
             string += f" at {self.source.current + 1}th token"
         if self.tt:
             string += f": {', '.join(str(t) for t in self.tt)}"

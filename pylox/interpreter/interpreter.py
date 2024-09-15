@@ -1,3 +1,4 @@
+import re
 from rusty_utils import Err, Ok, Catch, Option
 
 from pylox.ast.expression import (
@@ -6,7 +7,7 @@ from pylox.ast.expression import (
     Literal, Grouping,
     Binary, BinaryOp, Identifier, LogicalOp,
 )
-from pylox.ast.statement import IStmt, PrintStmt, ExprStmt, VarDecl, Assignment, Block, IfStmt
+from pylox.ast.statement import IStmt, PrintStmt, ExprStmt, VarDecl, Assignment, Block, IfStmt, WhileStmt
 from pylox.interpreter.environment import EnvGuard
 from pylox.interpreter.error import ErrorKinds, LoxRuntimeResult, LoxRuntimeError
 
@@ -164,12 +165,18 @@ def resolve_statement(stat: IStmt) -> LoxRuntimeResult[None]:
         "Assignment": resolve_assignment,
         "Block": resolve_block,
         "IfStmt": resolve_if_stmt,
+        "WhileStmt": resolve_while_stmt,
     }
 
     clazz = type(stat).__name__
     resolver = Option(table.get(clazz)).unwrap_or(not_matched)
     return resolver(stat)
 
+
+@Catch(LoxRuntimeError)  # type: ignore
+def resolve_while_stmt(stat: WhileStmt) -> None:
+    while is_truthy(resolve_expression(stat.condition).unwrap_or_raise()):
+        resolve_statement(stat.body).unwrap_or_raise()
 
 @Catch(LoxRuntimeError)  # type: ignore
 def resolve_if_stmt(stat: IfStmt) -> None:

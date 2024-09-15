@@ -3,7 +3,7 @@ from typing import Optional
 from rusty_utils import Catch
 
 from pylox.ast.expression import IExpr, Identifier
-from pylox.ast.statement import Program, IStmt, PrintStmt, ExprStmt, VarDecl, Assignment, Block, IfStmt
+from pylox.ast.statement import Program, IStmt, PrintStmt, ExprStmt, VarDecl, Assignment, Block, IfStmt, WhileStmt
 from pylox.lexer.tokens import TokenType
 from pylox.parser.error import ParseError, ErrorKinds
 from pylox.parser.expression import expression
@@ -107,11 +107,35 @@ def statement(source: Source) -> IStmt:
         res = block(source).unwrap_or_raise()
     elif source.match(TokenType.IF):
         res = if_statement(source).unwrap_or_raise()
+    elif source.match(TokenType.WHILE):
+        res = while_statement(source).unwrap_or_raise()
     else:
         res = assignment(source).unwrap_or_raise()
 
     return res
 
+
+@Catch(ParseError)  # type: ignore
+def while_statement(source: Source) -> IStmt:
+    if not source.match(TokenType.LEFT_PAREN):
+        raise ParseError(
+            ErrorKinds.EXPECTED_TOKEN,
+            source,
+            TokenType.LEFT_PAREN,
+        )
+
+    condition = expression(source).unwrap_or_raise()
+
+    if not source.match(TokenType.RIGHT_PAREN):
+        raise ParseError(
+            ErrorKinds.EXPECTED_TOKEN,
+            source,
+            TokenType.RIGHT_PAREN,
+        )
+
+    body = statement(source).unwrap_or_raise()
+
+    return WhileStmt(condition, body)
 
 @Catch(ParseError)  # type: ignore
 def variable_declaration(source: Source) -> IStmt:
