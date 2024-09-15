@@ -40,7 +40,7 @@ class TokenType(Enum):
     FUN = 'FUN'
     FOR = 'FOR'
     IF = 'IF'
-    NIL = 'NIL'
+    NONE = 'NONE'
     OR = 'OR'
     PRINT = 'PRINT'
     RETURN = 'RETURN'
@@ -56,17 +56,17 @@ KEYWORDS: dict[str, TokenType] = {
     "and": TokenType.AND,
     "class": TokenType.CLASS,
     "else": TokenType.ELSE,
-    "false": TokenType.FALSE,
+    "False": TokenType.FALSE,
     "fun": TokenType.FUN,
     "for": TokenType.FOR,
     "if": TokenType.IF,
-    "nil": TokenType.NIL,
+    "None": TokenType.NONE,
     "or": TokenType.OR,
     "print": TokenType.PRINT,
     "return": TokenType.RETURN,
     "super": TokenType.SUPER,
     "this": TokenType.THIS,
-    "true": TokenType.TRUE,
+    "True": TokenType.TRUE,
     "var": TokenType.VAR,
     "while": TokenType.WHILE,
 }

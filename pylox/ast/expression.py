@@ -9,7 +9,7 @@ unary          → ( "!" | "-" ) unary
 primary        → LITERAL
                | "(" expression ")"
                | IDENTIFIER ;
-LITERAL        → NUMBER | STRING | "true" | "false" | "nil" ;
+LITERAL        → NUMBER | STRING | "True" | "False" | "None" ;
 
 """
 import enum
