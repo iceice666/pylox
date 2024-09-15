@@ -4,7 +4,7 @@ from pylox.ast.expression import (
     IExpr,
     Unary, UnaryOp,
     Literal, Grouping,
-    Binary, BinaryOp, Identifier,
+    Binary, BinaryOp, Identifier, LogicalOp,
 )
 from pylox.ast.statement import IStmt, PrintStmt, ExprStmt, VarDecl, Assignment, Block, IfStmt
 from pylox.interpreter.environment import EnvGuard
@@ -72,6 +72,7 @@ def resolve_expression(expr: IExpr) -> LoxRuntimeResult[object]:
         "Identifier": resolve_identifier,
         "Unary": resolve_unary,
         "Binary": resolve_binary,
+        "Logical": resolve_logical,
     }
 
     clazz = type(expr).__name__
@@ -136,6 +137,22 @@ def resolve_binary(value: Binary) -> LoxRuntimeResult[object]:
             return Ok(left > right)
 
     return Err(LoxRuntimeError(ErrorKinds.UNREACHABLE, value, "@ resolve_binary"))
+
+
+def resolve_logical(value: Binary) -> LoxRuntimeResult[object]:
+    left = resolve_expression(value.left).unwrap_or_raise()
+
+    logic_left = is_truthy(left)
+
+    match value.operator:
+        case LogicalOp.AND:
+             if not logic_left:
+                 return Ok(left)
+        case LogicalOp.OR:
+            if logic_left:
+                return Ok(left)
+
+    return resolve_expression(value.right)
 
 
 ############### Statement Resolver ##############

@@ -1,5 +1,7 @@
 """
-expression     → equality ;
+expression     → logic_or ;
+logic_or       → logic_and ( "or" logic_and )* ;
+logic_and      → equality ( "and" equality )* ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
@@ -95,6 +97,21 @@ class BinaryOp(enum.Enum):
 class Binary(IExpr):
     left: IExpr
     operator: BinaryOp
+    right: IExpr
+
+
+class LogicalOp(enum.Enum):
+    OR = "or"
+    AND = "and"
+
+    def __str__(self) -> str:
+        return self.value
+
+
+@dataclass
+class Logical(IExpr):
+    left: IExpr
+    operator: LogicalOp
     right: IExpr
 
 

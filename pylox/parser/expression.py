@@ -1,6 +1,7 @@
 from rusty_utils import Catch
 
-from pylox.ast.expression import IExpr, Literal, Grouping, Unary, BinaryOp, Binary, UnaryOp, Primary, Identifier
+from pylox.ast.expression import IExpr, Literal, Grouping, Unary, BinaryOp, Binary, UnaryOp, Primary, Identifier, \
+    LogicalOp, Logical
 from pylox.lexer.tokens import TokenType
 from pylox.parser.error import ParseError, ErrorKinds
 from pylox.parser.source import Source
@@ -100,8 +101,29 @@ def equality(source: Source) -> IExpr:
 
 
 @Catch(ParseError)  # type: ignore
-def expression(source: Source) -> IExpr:
+def logical_and(source: Source) -> IExpr:
     expr: IExpr = equality(source).unwrap_or_raise()
+
+    while source.match(TokenType.AND):
+        right: IExpr = equality(source).unwrap_or_raise()
+        expr = Logical(expr, LogicalOp.AND, right)
+
+    return expr
+
+@Catch(ParseError)  # type: ignore
+def logical_or(source: Source) -> IExpr:
+    expr: IExpr = logical_and(source).unwrap_or_raise()
+
+    while source.match(TokenType.OR):
+        right: IExpr = logical_and(source).unwrap_or_raise()
+        expr = Logical(expr, LogicalOp.OR, right)
+
+    return expr
+
+
+@Catch(ParseError)  # type: ignore
+def expression(source: Source) -> IExpr:
+    expr: IExpr = logical_or(source).unwrap_or_raise()
     return expr
 
 

@@ -22,6 +22,9 @@ def resolve(ast: IExpr | IStmt, indent: int = 0) -> str:
         res = resolve_literal(ast, indent + 1)
     elif isinstance(ast, Identifier):
         res = resolve_identifier(ast, indent + 1)
+    elif isinstance(ast, Logical):
+        res = resolve_logical(ast, indent + 1).unwrap_or_raise()
+
     elif isinstance(ast, VarDecl):
         res = resolve_vardecl(ast, indent + 1).unwrap_or_raise()
     elif isinstance(ast, Assignment):
@@ -34,6 +37,16 @@ def resolve(ast: IExpr | IStmt, indent: int = 0) -> str:
         raise (ValueError(f"Invalid ast node: {ast}"))
 
     return res
+
+
+@Catch(ValueError)  # type: ignore
+def resolve_logical(value: Logical, indent: int) -> str:
+    left = resolve(value.left, indent).unwrap_or_raise()
+    right = resolve(value.right, indent).unwrap_or_raise()
+    return (f"({value.operator}\n"
+            f"{' ' * indent * 2}{left}\n"
+            f"{' ' * indent * 2}{right}\n"
+            f"{' ' * (indent - 1) * 2})")
 
 
 @Catch(ValueError)  # type: ignore
