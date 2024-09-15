@@ -4,7 +4,7 @@ from pylox.ast.expression import *
 from pylox.ast.statement import *
 
 
-def resolve(ast: IExpr | IStmt ) -> Result[str, ValueError]:
+def resolve(ast: IExpr | IStmt) -> Result[str, ValueError]:
     res: Result[str, ValueError]
 
     if isinstance(ast, ExprStmt):

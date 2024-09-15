@@ -35,11 +35,14 @@ if __name__ == "__main__":
 
                     print(SYMBOLS)
                     continue
+                case ".read":
+                    with open("./input.lox", "r") as f:
+                        text = f.read()
 
             tokens = tokenize(text).unwrap_or_raise()
             print(f"Tokens:")
-            for token in tokens:
-                print(token)
+            for i, token in enumerate(tokens):
+                print(f"{i+1}) {token}")
             print()
             ast = parse(tokens).unwrap_or_raise()
             print("AST:")
