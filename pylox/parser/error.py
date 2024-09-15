@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
 
 class ErrorKinds(Enum):
+    TOO_MANY_ARGUMENTS = "Too many arguments"
     UNREACHABLE = "Unreachable"
     UNEXPECTED_TOKEN = "Unexpected token"
     UNEXPECTED_EOF = "Unexpected end of file"

@@ -9,6 +9,8 @@ from pylox.ast.statement import IStmt
 
 
 class ErrorKinds(Enum):
+    RUNTIME_ERROR = "Runtime Error"
+    TYPE_ERROR = "Type Error"
     NAME_ERROR = "Name Error"
     UNREACHABLE = "Unreachable"
     VALUE_ERROR = "Value Error"

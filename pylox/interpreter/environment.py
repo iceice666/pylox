@@ -4,6 +4,7 @@ from typing import Optional
 
 from rusty_utils import Catch
 
+from pylox.interpreter.bulitin import Builtin
 from pylox.interpreter.error import LoxRuntimeError, ErrorKinds, LoxRuntimeResult
 
 
@@ -63,7 +64,7 @@ class Environment:
 
 
 class EnvGuard:
-    env = Environment(None, {}, "global")
+    env = Environment(None, Builtin, "global")
 
     def get(self, name: str) -> LoxRuntimeResult[object]:
         return self.env.get(name)

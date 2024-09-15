@@ -7,7 +7,9 @@ comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
-               | primary ;
+               | call ;
+call           → primary ( "(" arguments? ")" )* ;
+arguments      → expression ( "," expression )* ;
 primary        → LITERAL
                | "(" expression ")"
                | IDENTIFIER ;
@@ -24,6 +26,12 @@ from pylox.parser.error import ParseError, ErrorKinds
 
 class IExpr:
     pass
+
+
+@dataclass
+class FuncCall(IExpr):
+    callee: IExpr
+    args: list[IExpr]
 
 
 class UnaryOp(enum.Enum):

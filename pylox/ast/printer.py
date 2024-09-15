@@ -23,6 +23,8 @@ def resolve(ast: IExpr | IStmt) -> Result[str, ValueError]:
         res = resolve_identifier(ast)
     elif isinstance(ast, Logical):
         res = resolve_logical(ast)
+    elif isinstance(ast, FuncCall):
+        res = resolve_funccall(ast)
 
     elif isinstance(ast, VarDecl):
         res = resolve_vardecl(ast)
@@ -41,24 +43,30 @@ def resolve(ast: IExpr | IStmt) -> Result[str, ValueError]:
 
 
 @Catch(ValueError)  # type: ignore
+def resolve_funccall(value: FuncCall) -> str:
+    args = ', '.join([resolve(arg).unwrap_or_raise() for arg in value.args])
+    return f"(call {value.callee} ({args}))"
+
+
+@Catch(ValueError)  # type: ignore
 def resolve_whilestmt(value: WhileStmt) -> str:
-    condition = resolve(value.condition)
-    body = resolve(value.body)
+    condition = resolve(value.condition).unwrap_or_raise()
+    body = resolve(value.body).unwrap_or_raise()
     return f"(while {condition} {body})"
 
 
 @Catch(ValueError)  # type: ignore
 def resolve_logical(value: Logical) -> str:
-    left = resolve(value.left)
-    right = resolve(value.right)
+    left = resolve(value.left).unwrap_or_raise()
+    right = resolve(value.right).unwrap_or_raise()
     return f"({value.operator.value} {left} {right})"
 
 
 @Catch(ValueError)  # type: ignore
 def resolve_ifstmt(value: IfStmt) -> str:
-    condition = resolve(value.condition)
-    then_branch = resolve(value.then_branch)
-    else_branch = resolve(value.else_branch) if value.else_branch else None
+    condition = resolve(value.condition).unwrap_or_raise()
+    then_branch = resolve(value.then_branch).unwrap_or_raise()
+    else_branch = resolve(value.else_branch).unwrap_or_raise() if value.else_branch else None
     return f"(if {condition} {then_branch} {else_branch})" if else_branch else f"(if {condition} {then_branch})"
 
 
@@ -70,43 +78,42 @@ def resolve_block(value: Block) -> str:
 
 @Catch(ValueError)  # type: ignore
 def resolve_assignment(value: Assignment) -> str:
-    expr = resolve(value.value)
+    expr = resolve(value.value).unwrap_or_raise()
     return f"(= {value.name} {expr})"
 
 
 @Catch(ValueError)  # type: ignore
 def resolve_vardecl(value: VarDecl) -> str:
-    init = resolve(value.init) if value.init else "nil"
+    init = resolve(value.init).unwrap_or_raise() if value.init else "nil"
     return f"(var {value.name} {init})"
 
 
 @Catch(ValueError)  # type: ignore
 def resolve_exprstmt(value: IExpr) -> str:
-    return f"{resolve(value)}"
+    return f"{resolve(value).unwrap_or_raise()}"
 
 
 @Catch(ValueError)  # type: ignore
 def resolve_printstmt(value: IExpr) -> str:
-    expr = resolve(value)
-    return f"(print {expr})"
+    return f"(print {resolve(value).unwrap_or_raise()})"
 
 
 @Catch(ValueError)  # type: ignore
 def resolve_unary(value: Unary) -> str:
-    right = resolve(value.right)
+    right = resolve(value.right).unwrap_or_raise()
     return f"({value.operator.value} {right})"
 
 
 @Catch(ValueError)  # type: ignore
 def resolve_binary(value: Binary) -> str:
-    left = resolve(value.left)
-    right = resolve(value.right)
+    left = resolve(value.left).unwrap_or_raise()
+    right = resolve(value.right).unwrap_or_raise()
     return f"({value.operator.value} {left} {right})"
 
 
 @Catch(ValueError)  # type: ignore
 def resolve_grouping(value: Grouping) -> str:
-    expr = resolve(value.expression)
+    expr = resolve(value.expression).unwrap_or_raise()
     return f"(group {expr})"
 
 

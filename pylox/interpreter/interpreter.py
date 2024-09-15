@@ -1,12 +1,19 @@
 from rusty_utils import Err, Ok, Catch, Option
+
 from pylox.ast.expression import (
-    IExpr, Unary, UnaryOp, Literal, Grouping, Binary, BinaryOp, Identifier, LogicalOp,
+    IExpr, Unary, UnaryOp, Literal, Grouping, Binary, BinaryOp, Identifier, LogicalOp, FuncCall,
 )
-from pylox.ast.statement import IStmt, PrintStmt, ExprStmt, VarDecl, Assignment, Block, IfStmt, WhileStmt
+from pylox.ast.printer import format_ast
+from pylox.ast.statement import IStmt, PrintStmt, ExprStmt, VarDecl, Assignment, Block, IfStmt, WhileStmt, Program
+from pylox.interpreter.bulitin import LoxCallable
 from pylox.interpreter.environment import EnvGuard
 from pylox.interpreter.error import ErrorKinds, LoxRuntimeResult, LoxRuntimeError
+from pylox.lexer.lexer import tokenize
+from pylox.parser.parser import parse
 
 SYMBOLS = EnvGuard()
+
+
 
 ############### Helper Functions ##############
 
@@ -21,6 +28,7 @@ def floatify(value: object) -> LoxRuntimeResult[float]:
 
     return Ok(float(value))
 
+
 def is_truthy(value: object) -> bool:
     """Determine the truthiness of a value."""
     if value is None:
@@ -28,6 +36,7 @@ def is_truthy(value: object) -> bool:
     if isinstance(value, bool):
         return value
     return bool(value)
+
 
 def is_equal(left: object, right: object) -> bool:
     """Check if two values are equal."""
@@ -37,10 +46,12 @@ def is_equal(left: object, right: object) -> bool:
         return False
     return left == right
 
+
 @Catch(LoxRuntimeError)  # type: ignore
 def not_matched(obj: IStmt | IExpr) -> None:
     """Raise an error for unrecognized tokens."""
     raise LoxRuntimeError(ErrorKinds.UNRECOGNIZED_TOKEN, obj, "")
+
 
 ############### Expression Resolver ##############
 
@@ -53,23 +64,28 @@ def resolve_expression(expr: IExpr) -> LoxRuntimeResult[object]:
         "Unary": resolve_unary,
         "Binary": resolve_binary,
         "Logical": resolve_logical,
+        "FuncCall": resolve_func_call,
     }
 
     clazz = type(expr).__name__
     resolver = Option(table.get(clazz)).unwrap_or(not_matched)
     return resolver(expr)
 
+
 def resolve_literal(value: Literal) -> LoxRuntimeResult[object]:
     """Resolve a literal expression."""
     return Ok(value.value)
+
 
 def resolve_grouping(value: Grouping) -> LoxRuntimeResult[object]:
     """Resolve a grouping expression."""
     return resolve_expression(value.expression)
 
+
 def resolve_identifier(value: Identifier) -> LoxRuntimeResult[object]:
     """Resolve an identifier expression."""
     return SYMBOLS.get(value.name)
+
 
 def resolve_unary(value: Unary) -> LoxRuntimeResult[object]:
     """Resolve a unary expression."""
@@ -82,6 +98,7 @@ def resolve_unary(value: Unary) -> LoxRuntimeResult[object]:
             return Ok(not is_truthy(right))
 
     return Err(LoxRuntimeError(ErrorKinds.UNREACHABLE, value, "@ resolve_unary"))
+
 
 def resolve_binary(value: Binary) -> LoxRuntimeResult[object]:
     """Resolve a binary expression."""
@@ -117,6 +134,7 @@ def resolve_binary(value: Binary) -> LoxRuntimeResult[object]:
 
     return Err(LoxRuntimeError(ErrorKinds.UNREACHABLE, value, "@ resolve_binary"))
 
+
 def resolve_logical(value: Binary) -> LoxRuntimeResult[object]:
     """Resolve a logical expression."""
     left = resolve_expression(value.left).unwrap_or_raise()
@@ -131,6 +149,29 @@ def resolve_logical(value: Binary) -> LoxRuntimeResult[object]:
                 return Ok(left)
 
     return resolve_expression(value.right)
+
+
+def resolve_func_call(value: FuncCall) -> LoxRuntimeResult[object]:
+    """Resolve a function call expression."""
+    callee = resolve_expression(value.callee).unwrap_or_raise()
+    args = [resolve_expression(arg).unwrap_or_raise() for arg in value.args]
+
+    if not isinstance(callee, LoxCallable):
+        return Err(LoxRuntimeError(
+            ErrorKinds.TYPE_ERROR,
+            value,
+            f"Can only call functions and classes. Got: {callee}",
+        ))
+
+    if len(args) != callee.arity():
+        return Err(LoxRuntimeError(
+            ErrorKinds.RUNTIME_ERROR,
+            value,
+            f"Expected {callee.arity()} arguments but got {len(args)}",
+        ))
+
+    return callee.call(args)
+
 
 ############### Statement Resolver ##############
 
@@ -150,11 +191,13 @@ def resolve_statement(stat: IStmt) -> LoxRuntimeResult[None]:
     resolver = Option(table.get(clazz)).unwrap_or(not_matched)
     return resolver(stat)
 
+
 @Catch(LoxRuntimeError)  # type: ignore
 def resolve_while_stmt(stat: WhileStmt) -> None:
     """Resolve a while statement."""
     while is_truthy(resolve_expression(stat.condition).unwrap_or_raise()):
         resolve_statement(stat.body).unwrap_or_raise()
+
 
 @Catch(LoxRuntimeError)  # type: ignore
 def resolve_if_stmt(stat: IfStmt) -> None:
@@ -165,16 +208,19 @@ def resolve_if_stmt(stat: IfStmt) -> None:
     elif stat.else_branch:
         resolve_statement(stat.else_branch).unwrap_or_raise()
 
+
 @Catch(LoxRuntimeError)  # type: ignore
 def resolve_print_stmt(stat: PrintStmt) -> None:
     """Resolve a print statement."""
     expr = resolve_expression(stat.expr).unwrap_or_raise()
     print(expr)
 
+
 @Catch(LoxRuntimeError)  # type: ignore
 def resolve_expr_stmt(stat: ExprStmt) -> None:
     """Resolve an expression statement."""
     resolve_expression(stat.expr).unwrap_or_raise()
+
 
 @Catch(LoxRuntimeError)  # type: ignore
 def resolve_var_decl(stat: VarDecl) -> None:
@@ -182,11 +228,13 @@ def resolve_var_decl(stat: VarDecl) -> None:
     value = resolve_expression(stat.init).unwrap_or_raise() if stat.init else None
     SYMBOLS.define(stat.name, value)
 
+
 @Catch(LoxRuntimeError)  # type: ignore
 def resolve_assignment(stat: Assignment) -> None:
     """Resolve an assignment statement."""
     value = resolve_expression(stat.value).unwrap_or_raise()
     SYMBOLS.assign(stat.name, value)
+
 
 @Catch(LoxRuntimeError)  # type: ignore
 def resolve_block(stat: Block) -> None:
@@ -195,3 +243,50 @@ def resolve_block(stat: Block) -> None:
     for stmt in stat.statements:
         resolve_statement(stmt).unwrap_or_raise()
     SYMBOLS.quit_stack()
+
+
+############### Interpreter ##############
+
+
+def interpret(program: Program) -> None:
+    for stat in program.statements:
+        resolve_statement(stat).unwrap_or_raise()
+
+
+# REPL
+if __name__ == "__main__":
+    while True:
+        try:
+            text = input("|> ")
+
+            match text:
+                case ".exit":
+                    break
+                case ".newscope":
+                    SYMBOLS.new_stack()
+                    continue
+                case ".quitscope":
+                    SYMBOLS.quit_stack()
+                    continue
+                case ".env":
+                    print(SYMBOLS)
+                    continue
+                case ".read":
+                    with open("./input.lox", "r") as f:
+                        text = f.read()
+
+            tokens = tokenize(text).unwrap_or_raise()
+            print(f"Tokens:")
+            for i, token in enumerate(tokens):
+                print(f"{i + 1}) {token}")
+            print()
+            ast = parse(tokens).unwrap_or_raise()
+            print("AST:")
+            print(format_ast(ast).unwrap_or_raise())
+            print("=================================")
+
+            interpret(ast)
+        except KeyboardInterrupt:
+            break
+        except Exception as err:
+            print(f"{type(err).__name__}: {err}")
