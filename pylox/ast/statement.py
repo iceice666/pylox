@@ -6,11 +6,13 @@ declaration    → varDecl
 
 statement      → assignStmt
                | printStmt
+               | ifStmt
                | block ;
 
 assignStmt     → assignment | exprStmt ;
 
-
+ifStmt         → "if" "(" expression ")" statement
+               ( "else" statement )? ;
 block          → "{" declaration* "}" ;
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 assignment     → IDENTIFIER "=" expression ";" ;
@@ -42,12 +44,20 @@ class Assignment(IStmt):
     name: str
     value: IExpr
 
+
 @dataclass
 class Block(IStmt):
     statements: list[IStmt]
 
 
-Statement: TypeAlias = ExprStmt | PrintStmt | Assignment | Block
+@dataclass
+class IfStmt(IStmt):
+    condition: IExpr
+    then_branch: IStmt
+    else_branch: Optional[IStmt]
+
+
+Statement: TypeAlias = ExprStmt | PrintStmt | Assignment | Block | IfStmt
 
 
 @dataclass

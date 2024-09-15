@@ -28,10 +28,23 @@ def resolve(ast: IExpr | IStmt, indent: int = 0) -> str:
         res = resolve_assignment(ast, indent + 1).unwrap_or_raise()
     elif isinstance(ast, Block):
         res = resolve_block(ast, indent).unwrap_or_raise()
+    elif isinstance(ast, IfStmt):
+        res = resolve_ifstmt(ast, indent).unwrap_or_raise()
     else:
         raise (ValueError(f"Invalid ast node: {ast}"))
 
     return res
+
+
+@Catch(ValueError)  # type: ignore
+def resolve_ifstmt(value: IfStmt, indent: int) -> str:
+    s = (f"{'  ' * indent}(if "
+         f"{resolve(value.condition, indent).unwrap_or_raise().strip().replace(' ', '').replace('\n', ' ')}\n")
+    s += f"{'  ' * (indent + 1)}{resolve(value.then_branch, indent + 1).unwrap_or_raise()}\n"
+    if value.else_branch:
+        s += f"{'  ' * (indent + 1)}{resolve(value.else_branch, indent + 1).unwrap_or_raise()}\n"
+    s += f"{'  ' * indent})"
+    return s
 
 
 @Catch(ValueError)  # type: ignore

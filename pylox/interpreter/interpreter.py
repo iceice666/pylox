@@ -6,7 +6,7 @@ from pylox.ast.expression import (
     Literal, Grouping,
     Binary, BinaryOp, Identifier,
 )
-from pylox.ast.statement import IStmt, PrintStmt, ExprStmt, VarDecl, Assignment, Block
+from pylox.ast.statement import IStmt, PrintStmt, ExprStmt, VarDecl, Assignment, Block, IfStmt
 from pylox.interpreter.environment import EnvGuard
 from pylox.interpreter.error import ErrorKinds, LoxRuntimeResult, LoxRuntimeError
 
@@ -146,11 +146,21 @@ def resolve_statement(stat: IStmt) -> LoxRuntimeResult[None]:
         "VarDecl": resolve_var_decl,
         "Assignment": resolve_assignment,
         "Block": resolve_block,
+        "IfStmt": resolve_if_stmt,
     }
 
     clazz = type(stat).__name__
     resolver = Option(table.get(clazz)).unwrap_or(not_matched)
     return resolver(stat)
+
+
+@Catch(LoxRuntimeError)  # type: ignore
+def resolve_if_stmt(stat: IfStmt) -> None:
+    condition = is_truthy(resolve_expression(stat.condition).unwrap_or_raise())
+    if condition:
+        resolve_statement(stat.then_branch).unwrap_or_raise()
+    elif stat.else_branch:
+        resolve_statement(stat.else_branch).unwrap_or_raise()
 
 
 @Catch(LoxRuntimeError)  # type: ignore
