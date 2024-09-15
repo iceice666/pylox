@@ -2,7 +2,7 @@ from rusty_utils import Catch
 
 from pylox.ast.expression import IExpr, Literal, Grouping, Unary, BinaryOp, Binary, UnaryOp, Primary, Identifier
 from pylox.lexer.tokens import TokenType
-from pylox.parser.error import ParseError, ParseErrorKinds
+from pylox.parser.error import ParseError, ErrorKinds
 from pylox.parser.source import Source
 
 
@@ -27,11 +27,11 @@ def primary(source: Source) -> Primary:
         expr: IExpr = expression(source).unwrap_or_raise()
 
         if not source.match(TokenType.RIGHT_PAREN):
-            raise ParseError(ParseErrorKinds.EXPECTED_TOKEN, source, TokenType.RIGHT_PAREN)
+            raise ParseError(ErrorKinds.EXPECTED_TOKEN, source, TokenType.RIGHT_PAREN)
 
         return Grouping(expr)
 
-    raise ParseError(ParseErrorKinds.EXPECTED_TOKEN, source,
+    raise ParseError(ErrorKinds.EXPECTED_TOKEN, source,
                      TokenType.NUMBER,
                      TokenType.STRING,
                      TokenType.TRUE,

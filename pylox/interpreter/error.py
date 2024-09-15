@@ -8,7 +8,7 @@ from pylox.ast.expression import IExpr
 from pylox.ast.statement import IStmt
 
 
-class RuntimeErrorKinds(Enum):
+class ErrorKinds(Enum):
     NAME_ERROR = "Name Error"
     UNREACHABLE = "Unreachable"
     VALUE_ERROR = "Value Error"
@@ -16,8 +16,8 @@ class RuntimeErrorKinds(Enum):
 
 
 @dataclass
-class RuntimeError(Exception):
-    kind: RuntimeErrorKinds
+class LoxRuntimeError(Exception):
+    kind: ErrorKinds
     token: IExpr | IStmt | None = None
     message: Optional[str] = None
 
@@ -30,5 +30,6 @@ class RuntimeError(Exception):
         return string
 
 
+
 _T = TypeVar('_T', covariant=True)
-RuntimeResult: TypeAlias = Result[_T, RuntimeError]
+RuntimeResult: TypeAlias = Result[_T, LoxRuntimeError]

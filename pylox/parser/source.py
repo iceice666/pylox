@@ -3,7 +3,7 @@ from typing import List
 from rusty_utils import Option, Catch
 
 from pylox.lexer.tokens import Token, TokenType
-from pylox.parser.error import ParseResult, ParseError, ParseErrorKinds
+from pylox.parser.error import ParseResult, ParseError, ErrorKinds
 
 
 class Source:
@@ -25,7 +25,7 @@ class Source:
     def prev(self) -> ParseResult[Token]:
         return (
             Catch(IndexError)(lambda: self.__tokens[self.current - 1])()
-            .map_err(lambda _: ParseError(ParseErrorKinds.EXPECTED_TOKEN))
+            .map_err(lambda _: ParseError(ErrorKinds.EXPECTED_TOKEN))
         )
 
     def check(self, *token_type: TokenType) -> bool:
@@ -34,7 +34,7 @@ class Source:
         return bool(self.peek().is_some_and(lambda t: t.type in token_type))
 
     def consume(self) -> ParseResult[None]:
-        return self.advance().ok_or(ParseError(ParseErrorKinds.UNEXPECTED_TOKEN, source=self))
+        return self.advance().ok_or(ParseError(ErrorKinds.UNEXPECTED_TOKEN, source=self))
 
     def has_next(self) -> bool:
         return self.current < len(self.__tokens)

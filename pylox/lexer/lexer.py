@@ -2,7 +2,7 @@ from typing import List, Dict
 
 from rusty_utils import Option, Err, Ok
 
-from pylox.lexer.error import LexerResult, LexicalErrorKinds, LexicalError
+from pylox.lexer.error import LexerResult, ErrorKinds, LexicalError
 from pylox.lexer.source import Source
 from pylox.lexer.tokens import KEYWORDS, TokenType, Token
 
@@ -24,7 +24,7 @@ def __try_parse_string(source: Source) -> LexerResult[Token]:
     while True:
         next_ch = source.peek()
         if next_ch.is_none():
-            return Err(LexicalError(LexicalErrorKinds.UNTERMINATED_STRING_LITERAL, source=source))
+            return Err(LexicalError(ErrorKinds.UNTERMINATED_STRING_LITERAL, source=source))
 
         if next_ch.is_some_and(lambda c: c == '"'):
             break
@@ -48,7 +48,7 @@ def __try_parse_number(source: Source) -> LexerResult[Token]:
             source.consume()
         elif ch.is_some_and(lambda c: c == '.'):
             if flag_float:
-                return Err(LexicalError(LexicalErrorKinds.MALFORMED_NUMBER, source=source))
+                return Err(LexicalError(ErrorKinds.MALFORMED_NUMBER, source=source))
             flag_float = True
             source.consume()
         else:
@@ -56,7 +56,7 @@ def __try_parse_number(source: Source) -> LexerResult[Token]:
 
     lexeme = source.get_lexeme()
     if len(lexeme) == 0:
-        return Err(LexicalError(LexicalErrorKinds.HOW_DID_YOU_GET_HERE, source=source))
+        return Err(LexicalError(ErrorKinds.HOW_DID_YOU_GET_HERE, source=source))
     else:
         return Ok(__new_token(source, TokenType.NUMBER, float(lexeme) if flag_float else int(lexeme)))
 
@@ -84,7 +84,7 @@ def scan_token(source: Source) -> LexerResult[Token]:
     ch = ch.unwrap()
 
     if ch.isspace():
-        return Err(LexicalError(LexicalErrorKinds.NOP, source=source))
+        return Err(LexicalError(ErrorKinds.NOP, source=source))
 
     if ch.isdigit():
         return __try_parse_number(source)
@@ -151,7 +151,7 @@ def tokenize(input_: str) -> LexerResult[List[Token]]:
         match new_token:
             case Ok(tok):
                 tokens.append(tok)
-            case Err(LexicalError(kind=LexicalErrorKinds.NOP)):
+            case Err(LexicalError(kind=ErrorKinds.NOP)):
                 continue
             case Err(err):
                 return Err(err)

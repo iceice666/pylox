@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from pylox.parser.source import Source
 
 
-class ParseErrorKinds(Enum):
+class ErrorKinds(Enum):
     UNREACHABLE = "Unreachable"
     UNEXPECTED_TOKEN = "Unexpected token"
     UNEXPECTED_EOF = "Unexpected end of file"
@@ -16,7 +16,7 @@ class ParseErrorKinds(Enum):
 
 
 class ParseError(Exception):
-    def __init__(self, kind: ParseErrorKinds, source: Optional["Source"] = None, *tt: "TokenType"):
+    def __init__(self, kind: ErrorKinds, source: Optional["Source"] = None, *tt: "TokenType"):
         self.kind = kind
         self.source = source
         self.tt = tt

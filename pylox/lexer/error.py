@@ -5,8 +5,7 @@ from rusty_utils import Result
 
 from pylox.lexer.source import Source
 
-class LexicalErrorKinds(Enum):
-    IO_ERROR = "I/O Error"
+class ErrorKinds(Enum):
     UNEXPECTED_CHARACTER = "Unexpected character"
     UNTERMINATED_STRING_LITERAL = "Unterminated string literal"
     UNTERMINATED_CHAR_LITERAL = "Unterminated char literal"
@@ -23,9 +22,9 @@ class LexicalError(Exception):
 
     source: Optional[Source]
     char: str
-    kind: LexicalErrorKinds
+    kind: ErrorKinds
 
-    def __init__(self, kind: LexicalErrorKinds, source: Optional[Source] = None, char: str = ''):
+    def __init__(self, kind: ErrorKinds, source: Optional[Source] = None, char: str = ''):
         super().__init__()
         self.kind = kind
         self.source = source

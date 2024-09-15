@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from typing import TypeAlias
 
 from pylox.lexer.tokens import Token, TokenType
-from pylox.parser.error import ParseError, ParseErrorKinds
+from pylox.parser.error import ParseError, ErrorKinds
 
 
 class IExpr:
@@ -39,7 +39,7 @@ class UnaryOp(enum.Enum):
             case TokenType.MINUS:
                 return UnaryOp.NEG
             case _:
-                raise ParseError(ParseErrorKinds.UNEXPECTED_TOKEN, tt=token.type)
+                raise ParseError(ErrorKinds.UNEXPECTED_TOKEN, tt=token.type)
 
 
 @dataclass
@@ -88,7 +88,7 @@ class BinaryOp(enum.Enum):
             case TokenType.EQUAL_EQUAL:
                 return BinaryOp.EQ
             case _:
-                raise ParseError(ParseErrorKinds.UNEXPECTED_TOKEN, None, token.type)
+                raise ParseError(ErrorKinds.UNEXPECTED_TOKEN, None, token.type)
 
 
 @dataclass

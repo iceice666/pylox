@@ -16,8 +16,16 @@ if __name__ == "__main__":
     while True:
         try:
             text = input("|> ")
-            if text == "exit":
-                break
+
+            match text:
+                case ".exit":
+                    break
+                case ".env":
+                    from pylox.interpreter.interpreter import SYMBOLS
+
+                    print(SYMBOLS)
+                    continue
+
             tokens = tokenize(text).unwrap_or_raise()
             ast = parse(tokens).unwrap_or_raise()
             print(format_ast(ast).unwrap_or_raise())
@@ -26,5 +34,4 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             break
         except Exception as err:
-            # traceback.print_exc()
             print(f"{type(err).__name__}: {err}")
