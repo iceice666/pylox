@@ -6,11 +6,15 @@ term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
                | primary ;
-primary        → NUMBER | STRING | "true" | "false" | "nil"
-               | "(" expression ")" ;
+primary        → LITERAL
+               | "(" expression ")"
+               | IDENTIFIER ;
+LITERAL        → NUMBER | STRING | "true" | "false" | "nil" ;
+
 """
 import enum
 from dataclasses import dataclass
+from typing import TypeAlias
 
 from pylox.lexer.tokens import Token, TokenType
 from pylox.parser.error import ParseError, ParseErrorKinds
@@ -102,3 +106,11 @@ class Literal(IExpr):
 @dataclass
 class Grouping(IExpr):
     expression: IExpr
+
+
+@dataclass
+class Identifier(IExpr):
+    name: str
+
+
+Primary: TypeAlias = Literal | Identifier | Grouping

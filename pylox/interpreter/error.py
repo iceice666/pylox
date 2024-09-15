@@ -8,6 +8,7 @@ from pylox.ast.expression import IExpr
 
 
 class RuntimeErrorKinds(Enum):
+    NAME_ERROR = "Name Error"
     UNREACHABLE = "Unreachable"
     VALUE_ERROR = "Value Error"
     UNRECOGNIZED_TOKEN = "Unrecognized Token"
@@ -20,7 +21,7 @@ class RuntimeError(Exception):
     message: Optional[str] = None
 
     def __str__(self) -> str:
-        string = f"Error: {self.kind.value}"
+        string = f"{self.kind.value}"
         if self.token:
             string += f" with token {self.token}"
         if self.message:
@@ -29,4 +30,4 @@ class RuntimeError(Exception):
 
 
 _T = TypeVar('_T', covariant=True)
-ParseResult: TypeAlias = Result[_T, RuntimeError]
+RuntimeResult: TypeAlias = Result[_T, RuntimeError]

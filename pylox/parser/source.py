@@ -29,6 +29,7 @@ class Source:
         )
 
     def check(self, *token_type: TokenType) -> bool:
+        """Checks if the next token is any of the given types."""
         # Explict type cast here to satisfy mypy
         return bool(self.peek().is_some_and(lambda t: t.type in token_type))
 
@@ -39,6 +40,7 @@ class Source:
         return self.current < len(self.__tokens)
 
     def match(self, *expected: TokenType) -> bool:
+        """Consumes the next token if it matches any of the expected types."""
         for ty in expected:
             if self.check(ty):
                 self.advance()

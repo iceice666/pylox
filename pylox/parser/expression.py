@@ -1,13 +1,16 @@
 from rusty_utils import Catch
 
-from pylox.ast.expression import IExpr, Literal, Grouping, Unary, BinaryOp, Binary, UnaryOp
+from pylox.ast.expression import IExpr, Literal, Grouping, Unary, BinaryOp, Binary, UnaryOp, Primary, Identifier
 from pylox.lexer.tokens import TokenType
 from pylox.parser.error import ParseError, ParseErrorKinds
 from pylox.parser.source import Source
 
 
 @Catch(ParseError)  # type: ignore
-def primary(source: Source) -> IExpr:
+def primary(source: Source) -> Primary:
+    if source.match(TokenType.IDENTIFIER):
+        return Identifier(str(source.prev().unwrap_or_raise().value))
+
     if source.match(TokenType.NUMBER, TokenType.STRING):
         return Literal(source.prev().unwrap_or_raise().value)
 
