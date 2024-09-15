@@ -5,9 +5,12 @@ declaration    → varDecl
                | statement ;
 
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+assignment     → IDENTIFIER "=" expression ";" ;
 
-statement      → exprStmt
+statement      → assignStmt
                | printStmt ;
+
+assignStmt     → assignment | exprStmt ;
 
 exprStmt       → expression ";" ;
 printStmt      → "print" expression ";" ;
@@ -32,13 +35,19 @@ class PrintStmt(IStmt):
     expr: IExpr
 
 
-Statement: TypeAlias = Union[ExprStmt, PrintStmt]
+@dataclass
+class Assignment(IStmt):
+    name: str
+    value: IExpr
+
+
+Statement: TypeAlias = ExprStmt | PrintStmt | Assignment
 
 
 @dataclass
 class VarDecl(IStmt):
     name: str
-    init : Optional[IExpr]
+    init: Optional[IExpr]
 
 
 Declaration: TypeAlias = Union[VarDecl, Statement]

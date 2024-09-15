@@ -2,22 +2,41 @@ from typing import Optional
 
 from rusty_utils import Catch
 
-from pylox.ast.expression import IExpr
-from pylox.ast.statement import Program, IStmt, PrintStmt, ExprStmt, VarDecl
+from pylox.ast.expression import IExpr, Identifier
+from pylox.ast.statement import Program, IStmt, PrintStmt, ExprStmt, VarDecl, Assignment
 from pylox.lexer.tokens import TokenType
-from pylox.parser.error import ParseError, ParseErrorKinds
+from pylox.parser.error import ParseError, ErrorKinds
 from pylox.parser.expression import expression
 from pylox.parser.source import Source
 
 
 @Catch(ParseError)  # type: ignore
-def expression_statement(source: Source) -> IStmt:
+def assignment(source: Source) -> IStmt:
     expr = expression(source).unwrap_or_raise()
     if source.match(TokenType.SEMICOLON):
         return ExprStmt(expr)
 
+    if source.match(TokenType.EQUAL):
+        value = expression(source).unwrap_or_raise()
+        if isinstance(expr, Identifier):
+
+            if source.match(TokenType.SEMICOLON):
+                return Assignment(expr.name, value)
+
+            raise ParseError(
+                ErrorKinds.EXPECTED_TOKEN,
+                source,
+                TokenType.SEMICOLON,
+            )
+
+        raise ParseError(
+            ErrorKinds.UNEXPECTED_TOKEN,
+            source,
+            TokenType.IDENTIFIER,
+        )
+
     raise ParseError(
-        ParseErrorKinds.EXPECTED_TOKEN,
+        ErrorKinds.EXPECTED_TOKEN,
         source,
         TokenType.SEMICOLON,
     )
@@ -30,7 +49,7 @@ def print_statement(source: Source) -> IStmt:
         return PrintStmt(expr)
 
     raise ParseError(
-        ParseErrorKinds.EXPECTED_TOKEN,
+        ErrorKinds.EXPECTED_TOKEN,
         source,
         TokenType.SEMICOLON,
     )
@@ -42,7 +61,7 @@ def statement(source: Source) -> IStmt:
     if source.match(TokenType.PRINT):
         res = print_statement(source).unwrap_or_raise()
     else:
-        res = expression_statement(source).unwrap_or_raise()
+        res = assignment(source).unwrap_or_raise()
 
     return res
 
@@ -60,13 +79,13 @@ def variable_declaration(source: Source) -> IStmt:
             return VarDecl(name, expr)
 
         raise ParseError(
-            ParseErrorKinds.EXPECTED_TOKEN,
+            ErrorKinds.EXPECTED_TOKEN,
             source,
             TokenType.SEMICOLON,
         )
 
     raise ParseError(
-        ParseErrorKinds.EXPECTED_TOKEN,
+        ErrorKinds.EXPECTED_TOKEN,
         source,
         TokenType.IDENTIFIER,
     )
