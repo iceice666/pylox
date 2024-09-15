@@ -8,6 +8,7 @@ statement      → assignStmt
                | printStmt
                | ifStmt
                | whileStmt
+               | forStmt
                | block ;
 
 assignStmt     → assignment | exprStmt ;
@@ -15,6 +16,10 @@ assignStmt     → assignment | exprStmt ;
 ifStmt         → "if" "(" expression ")" statement
                ( "else" statement )? ;
 whileStmt      → "while" "(" expression ")" statement ;
+forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+                 expression? ";"
+                 expression? ")" statement ;
+
 block          → "{" declaration* "}" ;
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 assignment     → IDENTIFIER "=" expression ";" ;
@@ -58,10 +63,12 @@ class IfStmt(IStmt):
     then_branch: IStmt
     else_branch: Optional[IStmt]
 
+
 @dataclass
 class WhileStmt(IStmt):
     condition: IExpr
     body: IStmt
+
 
 Statement: TypeAlias = ExprStmt | PrintStmt | Assignment | Block | IfStmt
 
