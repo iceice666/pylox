@@ -51,7 +51,6 @@ class TokenType(Enum):
     WHILE = 'WHILE'
 
 
-
 KEYWORDS: dict[str, TokenType] = {
     "and": TokenType.AND,
     "class": TokenType.CLASS,
@@ -81,3 +80,6 @@ class Token:
 
     def __str__(self) -> str:
         return f"[{self.type.name}({self.value}) @ {self.span[0]}-{self.span[1]} ln.{self.lineno}]"
+
+    def __repr__(self) -> str:
+        return str(self)
