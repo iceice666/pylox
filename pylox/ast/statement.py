@@ -4,14 +4,16 @@ program        → statement* EOF ;
 declaration    → varDecl
                | statement ;
 
-varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
-assignment     → IDENTIFIER "=" expression ";" ;
-
 statement      → assignStmt
-               | printStmt ;
+               | printStmt
+               | block ;
 
 assignStmt     → assignment | exprStmt ;
 
+
+block          → "{" declaration* "}" ;
+varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+assignment     → IDENTIFIER "=" expression ";" ;
 exprStmt       → expression ";" ;
 printStmt      → "print" expression ";" ;
 """
@@ -40,8 +42,12 @@ class Assignment(IStmt):
     name: str
     value: IExpr
 
+@dataclass
+class Block(IStmt):
+    statements: list[IStmt]
 
-Statement: TypeAlias = ExprStmt | PrintStmt | Assignment
+
+Statement: TypeAlias = ExprStmt | PrintStmt | Assignment | Block
 
 
 @dataclass

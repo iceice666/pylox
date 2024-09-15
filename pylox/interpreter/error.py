@@ -13,6 +13,7 @@ class ErrorKinds(Enum):
     UNREACHABLE = "Unreachable"
     VALUE_ERROR = "Value Error"
     UNRECOGNIZED_TOKEN = "Unrecognized Token"
+    INVALID_STATE = "Invalid State"
 
 
 @dataclass
@@ -30,6 +31,5 @@ class LoxRuntimeError(Exception):
         return string
 
 
-
 _T = TypeVar('_T', covariant=True)
-RuntimeResult: TypeAlias = Result[_T, LoxRuntimeError]
+LoxRuntimeResult: TypeAlias = Result[_T, LoxRuntimeError]

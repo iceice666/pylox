@@ -6,16 +6,16 @@ from pylox.ast.expression import (
     Literal, Grouping,
     Binary, BinaryOp, Identifier,
 )
-from pylox.ast.statement import IStmt, PrintStmt, ExprStmt, VarDecl, Assignment
-from pylox.interpreter.environment import Environment
-from pylox.interpreter.error import ErrorKinds, RuntimeResult, LoxRuntimeError
+from pylox.ast.statement import IStmt, PrintStmt, ExprStmt, VarDecl, Assignment, Block
+from pylox.interpreter.environment import EnvGuard
+from pylox.interpreter.error import ErrorKinds, LoxRuntimeResult, LoxRuntimeError
 
-SYMBOLS: Environment = Environment()
+SYMBOLS = EnvGuard()
 
 
 ############### Helper Functions ##############
 
-def floatify(value: object) -> RuntimeResult[float]:
+def floatify(value: object) -> LoxRuntimeResult[float]:
     if not isinstance(value, (int, float)):
         return Err(LoxRuntimeError(
             ErrorKinds.VALUE_ERROR,
@@ -65,7 +65,7 @@ def not_matched(obj: IStmt | IExpr) -> None:
 
 
 ############### Expression Resolver ##############
-def resolve_expression(expr: IExpr) -> RuntimeResult[object]:
+def resolve_expression(expr: IExpr) -> LoxRuntimeResult[object]:
     table = {
         "Literal": resolve_literal,
         "Grouping": resolve_grouping,
@@ -79,19 +79,19 @@ def resolve_expression(expr: IExpr) -> RuntimeResult[object]:
     return resolver(expr)
 
 
-def resolve_literal(value: Literal) -> RuntimeResult[object]:
+def resolve_literal(value: Literal) -> LoxRuntimeResult[object]:
     return Ok(value.value)
 
 
-def resolve_grouping(value: Grouping) -> RuntimeResult[object]:
+def resolve_grouping(value: Grouping) -> LoxRuntimeResult[object]:
     return resolve_expression(value.expression)
 
 
-def resolve_identifier(value: Identifier) -> RuntimeResult[object]:
+def resolve_identifier(value: Identifier) -> LoxRuntimeResult[object]:
     return SYMBOLS.get(value.name)
 
 
-def resolve_unary(value: Unary) -> RuntimeResult[object]:
+def resolve_unary(value: Unary) -> LoxRuntimeResult[object]:
     right = resolve_expression(value.right)
 
     match value.operator:
@@ -104,7 +104,7 @@ def resolve_unary(value: Unary) -> RuntimeResult[object]:
     return Err(LoxRuntimeError(ErrorKinds.UNREACHABLE, value, "@ resolve_unary"))
 
 
-def resolve_binary(value: Binary) -> RuntimeResult[object]:
+def resolve_binary(value: Binary) -> LoxRuntimeResult[object]:
     left = resolve_expression(value.left).unwrap_or_raise()
     right = resolve_expression(value.right).unwrap_or_raise()
 
@@ -139,12 +139,13 @@ def resolve_binary(value: Binary) -> RuntimeResult[object]:
 
 
 ############### Statement Resolver ##############
-def resolve_statement(stat: IStmt) -> RuntimeResult[None]:
+def resolve_statement(stat: IStmt) -> LoxRuntimeResult[None]:
     table = {
         "PrintStmt": resolve_print_stmt,
         "ExprStmt": resolve_expr_stmt,
         "VarDecl": resolve_var_decl,
         "Assignment": resolve_assignment,
+        "Block": resolve_block,
     }
 
     clazz = type(stat).__name__
@@ -173,3 +174,11 @@ def resolve_var_decl(stat: VarDecl) -> None:
 def resolve_assignment(stat: Assignment) -> None:
     value = resolve_expression(stat.value).unwrap_or_raise()
     SYMBOLS.assign(stat.name, value)
+
+
+@Catch(LoxRuntimeError)  # type: ignore
+def resolve_block(stat: Block) -> None:
+    SYMBOLS.new_stack()
+    for stmt in stat.statements:
+        resolve_statement(stmt).unwrap_or_raise()
+    SYMBOLS.quit_stack()

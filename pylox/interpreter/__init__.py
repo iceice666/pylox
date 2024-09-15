@@ -20,6 +20,16 @@ if __name__ == "__main__":
             match text:
                 case ".exit":
                     break
+                case ".newscope":
+                    from pylox.interpreter.interpreter import SYMBOLS
+
+                    SYMBOLS.new_stack()
+                    continue
+                case ".quitscope":
+                    from pylox.interpreter.interpreter import SYMBOLS
+
+                    SYMBOLS.quit_stack()
+                    continue
                 case ".env":
                     from pylox.interpreter.interpreter import SYMBOLS
 
@@ -27,7 +37,12 @@ if __name__ == "__main__":
                     continue
 
             tokens = tokenize(text).unwrap_or_raise()
+            print(f"Tokens:")
+            for token in tokens:
+                print(token)
+            print()
             ast = parse(tokens).unwrap_or_raise()
+            print("AST:")
             print(format_ast(ast).unwrap_or_raise())
             print("=================================")
             interpret(ast)

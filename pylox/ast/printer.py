@@ -1,7 +1,7 @@
 from rusty_utils import Catch
 
-from pylox.ast.expression import IExpr, Unary, Binary, Grouping, Literal, Identifier
-from pylox.ast.statement import IStmt, ExprStmt, PrintStmt, Program, VarDecl, Assignment
+from pylox.ast.expression import *
+from pylox.ast.statement import *
 
 
 @Catch(ValueError)  # type: ignore
@@ -26,10 +26,21 @@ def resolve(ast: IExpr | IStmt, indent: int = 0) -> str:
         res = resolve_vardecl(ast, indent + 1).unwrap_or_raise()
     elif isinstance(ast, Assignment):
         res = resolve_assignment(ast, indent + 1).unwrap_or_raise()
+    elif isinstance(ast, Block):
+        res = resolve_block(ast, indent).unwrap_or_raise()
     else:
         raise (ValueError(f"Invalid ast node: {ast}"))
 
     return res
+
+
+@Catch(ValueError)  # type: ignore
+def resolve_block(value: Block, indent: int) -> str:
+    s = f"{'  ' * (indent - 1)}(\n"
+    for stmt in value.statements:
+        s += f"{'  ' * (indent + 1)}{resolve(stmt, indent + 1).unwrap_or_raise()}\n"
+    s += f"{'  ' * indent})"
+    return s
 
 
 @Catch(ValueError)  # type: ignore
