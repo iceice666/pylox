@@ -4,7 +4,7 @@ from pylox.ast.expression import *
 from pylox.ast.statement import *
 
 
-def resolve(ast: IExpr | IStmt = 0) -> Result[str, ValueError]:
+def resolve(ast: IExpr | IStmt ) -> Result[str, ValueError]:
     res: Result[str, ValueError]
 
     if isinstance(ast, ExprStmt):
@@ -111,12 +111,12 @@ def resolve_grouping(value: Grouping) -> str:
 
 
 @Catch(ValueError)  # type: ignore
-def resolve_literal(value: Literal, _indent: int) -> str:
+def resolve_literal(value: Literal) -> str:
     return str(value.value)
 
 
 @Catch(ValueError)  # type: ignore
-def resolve_identifier(value: Identifier, _indent: int) -> str:
+def resolve_identifier(value: Identifier) -> str:
     return value.name
 
 
