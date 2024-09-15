@@ -5,6 +5,7 @@ from typing import Optional, TypeVar, TypeAlias
 from rusty_utils import Result
 
 from pylox.ast.expression import IExpr
+from pylox.ast.statement import IStmt
 
 
 class RuntimeErrorKinds(Enum):
@@ -17,7 +18,7 @@ class RuntimeErrorKinds(Enum):
 @dataclass
 class RuntimeError(Exception):
     kind: RuntimeErrorKinds
-    token: Optional[IExpr] = None
+    token: IExpr | IStmt | None = None
     message: Optional[str] = None
 
     def __str__(self) -> str:

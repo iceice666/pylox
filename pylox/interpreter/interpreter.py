@@ -1,4 +1,4 @@
-from rusty_utils import Err, Ok
+from rusty_utils import Err, Ok, Catch, Option
 
 from pylox.ast.expression import (
     IExpr,
@@ -6,7 +6,7 @@ from pylox.ast.expression import (
     Literal, Grouping,
     Binary, BinaryOp, Identifier,
 )
-from pylox.ast.statement import IStmt, PrintStmt, ExprStmt
+from pylox.ast.statement import IStmt, PrintStmt, ExprStmt, VarDecl
 from pylox.interpreter.error import RuntimeErrorKinds, RuntimeResult, RuntimeError
 
 SYMBOLS: dict[str, object] = {}
@@ -19,7 +19,7 @@ def floatify(value: object) -> RuntimeResult[float]:
         return Err(RuntimeError(
             RuntimeErrorKinds.VALUE_ERROR,
             None,
-            "Operand must be a number.",
+            f"Operand must be a number. Got: {value}",
         ))
 
     if isinstance(value, float):
@@ -58,24 +58,24 @@ def is_equal(left: object, right: object) -> bool:
     return left == right
 
 
+@Catch(RuntimeError)  # type: ignore
+def not_matched(obj: IStmt | IExpr) -> None:
+    raise RuntimeError(RuntimeErrorKinds.UNRECOGNIZED_TOKEN, obj, "")
+
+
 ############### Expression Resolver ##############
 def resolve_expression(expr: IExpr) -> RuntimeResult[object]:
-    if isinstance(expr, Literal):
-        return resolve_literal(expr)
+    table = {
+        "Literal": resolve_literal,
+        "Grouping": resolve_grouping,
+        "Identifier": resolve_identifier,
+        "Unary": resolve_unary,
+        "Binary": resolve_binary,
+    }
 
-    if isinstance(expr, Grouping):
-        return resolve_grouping(expr)
-
-    if isinstance(expr, Identifier):
-        return resolve_identifier(expr)
-
-    if isinstance(expr, Unary):
-        return resolve_unary(expr)
-
-    if isinstance(expr, Binary):
-        return resolve_binary(expr)
-
-    return Err(RuntimeError(RuntimeErrorKinds.UNRECOGNIZED_TOKEN, expr, ""))
+    clazz = type(expr).__name__
+    resolver = Option(table.get(clazz)).unwrap_or(not_matched)
+    return resolver(expr)
 
 
 def resolve_literal(value: Literal) -> RuntimeResult[object]:
@@ -142,19 +142,29 @@ def resolve_binary(value: Binary) -> RuntimeResult[object]:
 
 ############### Statement Resolver ##############
 def resolve_statement(stat: IStmt) -> RuntimeResult[None]:
-    if isinstance(stat, PrintStmt):
-        return resolve_print_stmt(stat)
+    table = {
+        "PrintStmt": resolve_print_stmt,
+        "ExprStmt": resolve_expr_stmt,
+        "VarDecl": resolve_var_decl,
+    }
 
-    if isinstance(stat, ExprStmt):
-        return resolve_expr_stmt(stat)
+    clazz = type(stat).__name__
+    resolver = Option(table.get(clazz)).unwrap_or(not_matched)
+    return resolver(stat)
 
 
-def resolve_print_stmt(stat: PrintStmt) -> RuntimeResult[None]:
+@Catch(RuntimeError)  # type: ignore
+def resolve_print_stmt(stat: PrintStmt) -> None:
     expr = resolve_expression(stat.expr).unwrap_or_raise()
     print(expr)
-    return Ok(None)
 
 
-def resolve_expr_stmt(stat: ExprStmt) -> RuntimeResult[None]:
+@Catch(RuntimeError)  # type: ignore
+def resolve_expr_stmt(stat: ExprStmt) -> None:
     resolve_expression(stat.expr).unwrap_or_raise()
-    return Ok(None)
+
+
+@Catch(RuntimeError)  # type: ignore
+def resolve_var_decl(stat: VarDecl) -> None:
+    value = resolve_expression(stat.init).unwrap_or_raise() if stat.init else None
+    SYMBOLS[stat.name] = value

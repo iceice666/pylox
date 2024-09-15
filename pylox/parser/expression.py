@@ -20,7 +20,7 @@ def primary(source: Source) -> Primary:
     if source.match(TokenType.FALSE):
         return Literal(False)
 
-    if source.match(TokenType.NIL):
+    if source.match(TokenType.NONE):
         return Literal(None)
 
     if source.match(TokenType.LEFT_PAREN):
@@ -36,7 +36,7 @@ def primary(source: Source) -> Primary:
                      TokenType.STRING,
                      TokenType.TRUE,
                      TokenType.FALSE,
-                     TokenType.NIL,
+                     TokenType.NONE,
                      TokenType.LEFT_PAREN)
 
 
