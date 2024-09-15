@@ -1,4 +1,4 @@
-from pylox.lexer.error import LexicalErrorKinds
+from pylox.lexer.error import ErrorKinds
 from pylox.lexer.lexer import tokenize
 from pylox.lexer.tokens import TokenType, Token
 
@@ -27,13 +27,13 @@ def test_tokenize_edge_cases() -> None:
     result = tokenize(input_)
     assert result.is_err()
     error = result.unwrap_err()
-    assert error.kind == LexicalErrorKinds.MALFORMED_NUMBER
+    assert error.kind == ErrorKinds.MALFORMED_NUMBER
 
     input_ = '123.45; "unterminated_string'
     result = tokenize(input_)
     assert result.is_err()
     error = result.unwrap_err()
-    assert error.kind == LexicalErrorKinds.UNTERMINATED_STRING_LITERAL
+    assert error.kind == ErrorKinds.UNTERMINATED_STRING_LITERAL
 
 
 def test_try_parse_string() -> None:
@@ -47,7 +47,7 @@ def test_try_parse_string() -> None:
     result = tokenize('"unterminated_string')
     assert result.is_err()
     error = result.unwrap_err()
-    assert error.kind == LexicalErrorKinds.UNTERMINATED_STRING_LITERAL
+    assert error.kind == ErrorKinds.UNTERMINATED_STRING_LITERAL
 
 
 def test_try_parse_number() -> None:
@@ -61,7 +61,7 @@ def test_try_parse_number() -> None:
     result = tokenize('123.45.67')
     assert result.is_err()
     error = result.unwrap_err()
-    assert error.kind == LexicalErrorKinds.MALFORMED_NUMBER
+    assert error.kind == ErrorKinds.MALFORMED_NUMBER
 
 
 def test_parse_punctuation() -> None:

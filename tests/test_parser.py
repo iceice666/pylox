@@ -16,7 +16,7 @@ def make_expression(source: str) -> Result[IExpr, ParseError]:
 
 
 def test_primary() -> None:
-    source = '42 "hello" true false nil'.split()
+    source = '42 "hello" True False None'.split()
     expected = [
         Literal(42),
         Literal("hello"),
