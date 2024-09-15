@@ -6,18 +6,19 @@ from pylox.ast.expression import (
     Literal, Grouping,
     Binary, BinaryOp, Identifier,
 )
-from pylox.ast.statement import IStmt, PrintStmt, ExprStmt, VarDecl
-from pylox.interpreter.error import RuntimeErrorKinds, RuntimeResult, RuntimeError
+from pylox.ast.statement import IStmt, PrintStmt, ExprStmt, VarDecl, Assignment
+from pylox.interpreter.environment import Environment
+from pylox.interpreter.error import ErrorKinds, RuntimeResult, LoxRuntimeError
 
-SYMBOLS: dict[str, object] = {}
+SYMBOLS: Environment = Environment()
 
 
 ############### Helper Functions ##############
 
 def floatify(value: object) -> RuntimeResult[float]:
     if not isinstance(value, (int, float)):
-        return Err(RuntimeError(
-            RuntimeErrorKinds.VALUE_ERROR,
+        return Err(LoxRuntimeError(
+            ErrorKinds.VALUE_ERROR,
             None,
             f"Operand must be a number. Got: {value}",
         ))
@@ -58,9 +59,9 @@ def is_equal(left: object, right: object) -> bool:
     return left == right
 
 
-@Catch(RuntimeError)  # type: ignore
+@Catch(LoxRuntimeError)  # type: ignore
 def not_matched(obj: IStmt | IExpr) -> None:
-    raise RuntimeError(RuntimeErrorKinds.UNRECOGNIZED_TOKEN, obj, "")
+    raise LoxRuntimeError(ErrorKinds.UNRECOGNIZED_TOKEN, obj, "")
 
 
 ############### Expression Resolver ##############
@@ -87,10 +88,7 @@ def resolve_grouping(value: Grouping) -> RuntimeResult[object]:
 
 
 def resolve_identifier(value: Identifier) -> RuntimeResult[object]:
-    if value.name in SYMBOLS:
-        return Ok(SYMBOLS[value.name])
-
-    return Err(RuntimeError(RuntimeErrorKinds.NAME_ERROR, value, f"Undefined variable '{value.name}'."))
+    return SYMBOLS.get(value.name)
 
 
 def resolve_unary(value: Unary) -> RuntimeResult[object]:
@@ -103,7 +101,7 @@ def resolve_unary(value: Unary) -> RuntimeResult[object]:
         case UnaryOp.NOT:
             return Ok(not is_truthy(right))
 
-    return Err(RuntimeError(RuntimeErrorKinds.UNREACHABLE, value, "@ resolve_unary"))
+    return Err(LoxRuntimeError(ErrorKinds.UNREACHABLE, value, "@ resolve_unary"))
 
 
 def resolve_binary(value: Binary) -> RuntimeResult[object]:
@@ -137,7 +135,7 @@ def resolve_binary(value: Binary) -> RuntimeResult[object]:
         case BinaryOp.GT:
             return Ok(left > right)
 
-    return Err(RuntimeError(RuntimeErrorKinds.UNREACHABLE, value, "@ resolve_binary"))
+    return Err(LoxRuntimeError(ErrorKinds.UNREACHABLE, value, "@ resolve_binary"))
 
 
 ############### Statement Resolver ##############
@@ -146,6 +144,7 @@ def resolve_statement(stat: IStmt) -> RuntimeResult[None]:
         "PrintStmt": resolve_print_stmt,
         "ExprStmt": resolve_expr_stmt,
         "VarDecl": resolve_var_decl,
+        "Assignment": resolve_assignment,
     }
 
     clazz = type(stat).__name__
@@ -153,18 +152,24 @@ def resolve_statement(stat: IStmt) -> RuntimeResult[None]:
     return resolver(stat)
 
 
-@Catch(RuntimeError)  # type: ignore
+@Catch(LoxRuntimeError)  # type: ignore
 def resolve_print_stmt(stat: PrintStmt) -> None:
     expr = resolve_expression(stat.expr).unwrap_or_raise()
     print(expr)
 
 
-@Catch(RuntimeError)  # type: ignore
+@Catch(LoxRuntimeError)  # type: ignore
 def resolve_expr_stmt(stat: ExprStmt) -> None:
     resolve_expression(stat.expr).unwrap_or_raise()
 
 
-@Catch(RuntimeError)  # type: ignore
+@Catch(LoxRuntimeError)  # type: ignore
 def resolve_var_decl(stat: VarDecl) -> None:
     value = resolve_expression(stat.init).unwrap_or_raise() if stat.init else None
-    SYMBOLS[stat.name] = value
+    SYMBOLS.define(stat.name, value)
+
+
+@Catch(LoxRuntimeError)  # type: ignore
+def resolve_assignment(stat: Assignment) -> None:
+    value = resolve_expression(stat.value).unwrap_or_raise()
+    SYMBOLS.assign(stat.name, value)
