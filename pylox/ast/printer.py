@@ -8,9 +8,9 @@ def resolve(ast: IExpr | IStmt) -> Result[str, ValueError]:
     res: Result[str, ValueError]
 
     if isinstance(ast, ExprStmt):
-        res = resolve_exprstmt(ast.expr)
+        res = resolve_expr_stmt(ast.expr)
     elif isinstance(ast, PrintStmt):
-        res = resolve_printstmt(ast.expr)
+        res = resolve_print_stmt(ast.expr)
     elif isinstance(ast, Unary):
         res = resolve_unary(ast)
     elif isinstance(ast, Binary):
@@ -24,18 +24,18 @@ def resolve(ast: IExpr | IStmt) -> Result[str, ValueError]:
     elif isinstance(ast, Logical):
         res = resolve_logical(ast)
     elif isinstance(ast, FuncCall):
-        res = resolve_funccall(ast)
+        res = resolve_func_call(ast)
 
     elif isinstance(ast, VarDecl):
-        res = resolve_vardecl(ast)
+        res = resolve_var_decl(ast)
     elif isinstance(ast, Assignment):
         res = resolve_assignment(ast)
     elif isinstance(ast, Block):
         res = resolve_block(ast)
     elif isinstance(ast, IfStmt):
-        res = resolve_ifstmt(ast)
+        res = resolve_if_stmt(ast)
     elif isinstance(ast, WhileStmt):
-        res = resolve_whilestmt(ast)
+        res = resolve_while_stmt(ast)
     else:
         return Err(ValueError(f"Invalid AST node: {ast}"))
 
@@ -43,13 +43,13 @@ def resolve(ast: IExpr | IStmt) -> Result[str, ValueError]:
 
 
 @Catch(ValueError)  # type: ignore
-def resolve_funccall(value: FuncCall) -> str:
+def resolve_func_call(value: FuncCall) -> str:
     args = ', '.join([resolve(arg).unwrap_or_raise() for arg in value.args])
     return f"(call {value.callee} ({args}))"
 
 
 @Catch(ValueError)  # type: ignore
-def resolve_whilestmt(value: WhileStmt) -> str:
+def resolve_while_stmt(value: WhileStmt) -> str:
     condition = resolve(value.condition).unwrap_or_raise()
     body = resolve(value.body).unwrap_or_raise()
     return f"(while {condition} {body})"
@@ -63,7 +63,7 @@ def resolve_logical(value: Logical) -> str:
 
 
 @Catch(ValueError)  # type: ignore
-def resolve_ifstmt(value: IfStmt) -> str:
+def resolve_if_stmt(value: IfStmt) -> str:
     condition = resolve(value.condition).unwrap_or_raise()
     then_branch = resolve(value.then_branch).unwrap_or_raise()
     else_branch = resolve(value.else_branch).unwrap_or_raise() if value.else_branch else None
@@ -83,18 +83,18 @@ def resolve_assignment(value: Assignment) -> str:
 
 
 @Catch(ValueError)  # type: ignore
-def resolve_vardecl(value: VarDecl) -> str:
+def resolve_var_decl(value: VarDecl) -> str:
     init = resolve(value.init).unwrap_or_raise() if value.init else "nil"
     return f"(var {value.name} {init})"
 
 
 @Catch(ValueError)  # type: ignore
-def resolve_exprstmt(value: IExpr) -> str:
+def resolve_expr_stmt(value: IExpr) -> str:
     return f"{resolve(value).unwrap_or_raise()}"
 
 
 @Catch(ValueError)  # type: ignore
-def resolve_printstmt(value: IExpr) -> str:
+def resolve_print_stmt(value: IExpr) -> str:
     return f"(print {resolve(value).unwrap_or_raise()})"
 
 
