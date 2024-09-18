@@ -1,8 +1,10 @@
-var a = 0;
-var temp;
+var score = number(input("請輸入成績: "));
 
-for (var b = 1; a < 10000; b = temp + b) {
-  print a;
-  temp = a;
-  a = b;
+
+if (score > 90) {
+    print "A";
+} else if (score > 80 ){
+    print "B";
+} else {
+    print "Failure";
 }
