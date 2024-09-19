@@ -3,7 +3,7 @@ from typing import Optional
 from rusty_utils import Catch
 
 from pylox.ast.expression import IExpr, Identifier, Literal
-from pylox.ast.statement import Program, IStmt, PrintStmt, ExprStmt, VarDecl, Assignment, Block, IfStmt, WhileStmt
+from pylox.ast.statement import Program, IStmt,  ExprStmt, VarDecl, Assignment, Block, IfStmt, WhileStmt
 from pylox.lexer.tokens import TokenType
 from pylox.parser.error import ParseError, ErrorKinds
 from pylox.parser.expression import expression
@@ -49,13 +49,6 @@ def assignment(source: Source) -> IStmt:
 
 
 @Catch(ParseError)  # type: ignore
-def print_statement(source: Source) -> IStmt:
-    expr = parse_expression(source)
-    expect_token(source, TokenType.SEMICOLON)
-    return PrintStmt(expr)
-
-
-@Catch(ParseError)  # type: ignore
 def block(source: Source) -> IStmt:
     statements = []
     while not source.check(TokenType.RIGHT_BRACE) and source.has_next():
@@ -82,8 +75,6 @@ def if_statement(source: Source) -> IStmt:
 
 @Catch(ParseError)  # type: ignore
 def statement(source: Source) -> IStmt:
-    if source.match(TokenType.PRINT):
-        return print_statement(source).unwrap_or_raise()
     if source.match(TokenType.LEFT_BRACE):
         return block(source).unwrap_or_raise()
     if source.match(TokenType.IF):

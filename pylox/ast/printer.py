@@ -9,8 +9,7 @@ def resolve(ast: IExpr | IStmt) -> Result[str, ValueError]:
 
     if isinstance(ast, ExprStmt):
         res = resolve_expr_stmt(ast.expr)
-    elif isinstance(ast, PrintStmt):
-        res = resolve_print_stmt(ast.expr)
+
     elif isinstance(ast, Unary):
         res = resolve_unary(ast)
     elif isinstance(ast, Binary):
@@ -91,11 +90,6 @@ def resolve_var_decl(value: VarDecl) -> str:
 @Catch(ValueError)  # type: ignore
 def resolve_expr_stmt(value: IExpr) -> str:
     return f"{resolve(value).unwrap_or_raise()}"
-
-
-@Catch(ValueError)  # type: ignore
-def resolve_print_stmt(value: IExpr) -> str:
-    return f"(print {resolve(value).unwrap_or_raise()})"
 
 
 @Catch(ValueError)  # type: ignore

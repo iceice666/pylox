@@ -5,7 +5,6 @@ declaration    → varDecl
                | statement ;
 
 statement      → assignStmt
-               | printStmt
                | ifStmt
                | whileStmt
                | forStmt
@@ -24,7 +23,6 @@ block          → "{" declaration* "}" ;
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 assignment     → IDENTIFIER "=" expression ";" ;
 exprStmt       → expression ";" ;
-printStmt      → "print" expression ";" ;
 """
 from dataclasses import dataclass
 from typing import Union, TypeAlias, Optional
@@ -38,11 +36,6 @@ class IStmt:
 
 @dataclass
 class ExprStmt(IStmt):
-    expr: IExpr
-
-
-@dataclass
-class PrintStmt(IStmt):
     expr: IExpr
 
 
@@ -70,7 +63,7 @@ class WhileStmt(IStmt):
     body: IStmt
 
 
-Statement: TypeAlias = ExprStmt | PrintStmt | Assignment | Block | IfStmt
+Statement: TypeAlias = ExprStmt  | Assignment | Block | IfStmt
 
 
 @dataclass

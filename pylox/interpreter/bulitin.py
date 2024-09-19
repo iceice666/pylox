@@ -62,8 +62,20 @@ class CastToNumberImpl(LoxCallable):
     def __repr__(self) -> str:
         return "<native fn number>"
 
+class PrintImpl(LoxCallable):
+    def arity(self) -> int:
+        return 1
+
+    def call(self, args: list[object]) -> LoxRuntimeResult[object]:
+        print(args[0])
+        return Ok(None)
+
+    def __repr__(self) -> str:
+        return "<native fn print>"
+
 Builtin = {
     "time": TimeImpl(),
     "input": InputImpl(),
     "number" : CastToNumberImpl(),
+    "print" : PrintImpl()
 }

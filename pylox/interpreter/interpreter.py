@@ -4,7 +4,7 @@ from pylox.ast.expression import (
     IExpr, Unary, UnaryOp, Literal, Grouping, Binary, BinaryOp, Identifier, LogicalOp, FuncCall,
 )
 from pylox.ast.printer import format_ast
-from pylox.ast.statement import IStmt, PrintStmt, ExprStmt, VarDecl, Assignment, Block, IfStmt, WhileStmt, Program
+from pylox.ast.statement import IStmt, ExprStmt, VarDecl, Assignment, Block, IfStmt, WhileStmt, Program
 from pylox.interpreter.bulitin import LoxCallable
 from pylox.interpreter.environment import EnvGuard
 from pylox.interpreter.error import ErrorKinds, LoxRuntimeResult, LoxRuntimeError
@@ -12,7 +12,6 @@ from pylox.lexer.lexer import tokenize
 from pylox.parser.parser import parse
 
 SYMBOLS = EnvGuard()
-
 
 
 ############### Helper Functions ##############
@@ -178,7 +177,6 @@ def resolve_func_call(value: FuncCall) -> LoxRuntimeResult[object]:
 def resolve_statement(stat: IStmt) -> LoxRuntimeResult[None]:
     """Resolve a statement based on its type."""
     table = {
-        "PrintStmt": resolve_print_stmt,
         "ExprStmt": resolve_expr_stmt,
         "VarDecl": resolve_var_decl,
         "Assignment": resolve_assignment,
@@ -207,13 +205,6 @@ def resolve_if_stmt(stat: IfStmt) -> None:
         resolve_statement(stat.then_branch).unwrap_or_raise()
     elif stat.else_branch:
         resolve_statement(stat.else_branch).unwrap_or_raise()
-
-
-@Catch(LoxRuntimeError)  # type: ignore
-def resolve_print_stmt(stat: PrintStmt) -> None:
-    """Resolve a print statement."""
-    expr = resolve_expression(stat.expr).unwrap_or_raise()
-    print(expr)
 
 
 @Catch(LoxRuntimeError)  # type: ignore
@@ -272,7 +263,7 @@ if __name__ == "__main__":
                     print(SYMBOLS)
                     continue
                 case ".read":
-                    with open("./input.lox", "r") as f:
+                    with open("./input.lox", "r", encoding="utf-8") as f:
                         text = f.read()
 
             tokens = tokenize(text).unwrap_or_raise()

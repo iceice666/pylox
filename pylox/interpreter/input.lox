@@ -2,9 +2,9 @@ var score = number(input("請輸入成績: "));
 
 
 if (score > 90) {
-    print "A";
+    print( "A");
 } else if (score > 80 ){
-    print "B";
+    print( "B");
 } else {
-    print "Failure";
+    print ("Failure");
 }

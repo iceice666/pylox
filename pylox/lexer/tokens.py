@@ -42,7 +42,6 @@ class TokenType(Enum):
     IF = 'IF'
     NONE = 'NONE'
     OR = 'OR'
-    PRINT = 'PRINT'
     RETURN = 'RETURN'
     SUPER = 'SUPER'
     THIS = 'THIS'
@@ -61,7 +60,6 @@ KEYWORDS: dict[str, TokenType] = {
     "if": TokenType.IF,
     "None": TokenType.NONE,
     "or": TokenType.OR,
-    "print": TokenType.PRINT,
     "return": TokenType.RETURN,
     "super": TokenType.SUPER,
     "this": TokenType.THIS,
